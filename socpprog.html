@@ -1,0 +1,72 @@
+<html>
+<title>MATLAB primal-dual interior-point solver for 
+second-order cone programming</title>
+<body bgcolor="#FFFFFF">
+
+<center>
+<br>
+<table align="center" border=0 width=460 cellspacing=0
+cellpadding=0>
+<tr><td valign=top>
+
+<center><h2>MATLAB implementation of a primal-dual interior-point solver for 
+convex second-order cone programs</h2>
+by Peter Carbonetto<br>
+Dept. of Computer Science<br>
+University of British Columbia
+</center>
+
+<p>This is a simple implementation of a primal-dual interior-point method for
+solving an optimization problem formulated as a second-order cone program
+(SOCP) in which the objective is convex. My code is not expected to be as 
+robust or as fast as other software packages, but it is extremely simple to 
+use and understand. And it might even work well for fairly large problems.</p>
+
+<p>My implementation requires that you are able write a MATLAB function that
+computes at any given point the value of the objective, its gradient vector, 
+and the Hessian (i.e. the second-order partial derivatives). For more
+information on second-order cone programs, I highly recommend reading
+Convex Programming by Boyd and Vandenberghe (Cambridge University Press, 
+2004), but there are many other references in the numerical optimization 
+literature, and some of them may be even worth reading.</p>
+
+<p>For further details behind the implementation, see 
+<a href="convexprog.html">this webpage</a>, which describes my MATLAB code 
+for solving slightly more general convex programs.</p>
+
+<p>If you have any questions, praise, or comments, or would like to
+report a bug, do not hesitate to contact <a
+href="index.html">me</a>. I've tested this software in MATLAB
+version 7.5.</p>
+
+<h4>License</h4>
+
+This work is licensed under the 
+<a href="http://www.gnu.org/licenses/gpl.html">GNU Public license</a>.
+Please cite the source as Peter Carbonetto, Department of Computer Science,
+University of British Columbia.  
+
+<h4>Installation and use</h4>
+
+<p>Click <a href="socpprog.tar.gz">here</a> to download a compressed 
+TAR archive containing three MATLAB files. The interior-point solver is 
+<code>socpsolver.m</code>. There are also two files for a demonstration
+of how to use my MATLAB function to find the solution to a group feature
+selection problem for linear regression (a problem currently being 
+investigated in the machine learning research field). This demonstration 
+was contributed by
+<a href="http://www.cs.ubc.ca/spider/schmidtm">Mark Schmidt</a>.
+
+<p>If you type <code>help socpsolver</code> in the MATLAB console, 
+you will see instructions on how to use the solver for your own
+second-order cone optimization problem. I also highly recommend running 
+and understanding the example provided, since it should give 
+you a good idea how to use solver in your own MATLAB script.</p>
+
+</td></tr>
+
+<tr>
+<td align=right><br><font color="#666666" size=2>May 26, 2008</font></tr>
+</table>
+</body>
+</html>

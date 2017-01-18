@@ -1,0 +1,143 @@
+<html>
+<title>Limited-memory BFGS for MATLAB</title>
+<body bgcolor="#FFFFFF">
+
+<center>
+<br>
+<table align="center" border=0 width=460 cellspacing=0
+cellpadding=0>
+<tr><td valign=top>
+
+<center><h2>Limited-memory BFGS for MATLAB</h2>
+</center>
+
+<h3>Introduction</h3>
+
+<p>This is a small class I wrote using MATLAB's object-oriented
+programming framework. It implements a limited-memory quasi-Newton
+(BFGS, which stands for Broyden, Fletcher, Goldfarb and Shanno) method
+for approximating the Hessian of the objective function. This
+approximation is obtained via a small number of measurements of the
+gradient. For background on quasi-Newton methods for optimization, see
+the references below.</p>
+
+<p>If you have any questions, praise, or comments, or would like to
+report a bug, do not hesitate to contact the <a
+href="index.html">author</a>. I've tested this software in MATLAB
+version 7.8 on both the Linux operating systems.</p>
+
+<h4>License</h4>
+
+This work is licensed under the 
+<a href="http://www.gnu.org/licenses/gpl.html">GNU Public license</a>.
+Please cite the source as Peter Carbonetto, Department of Computer Science,
+University of British Columbia.
+
+<h3>Overview</h3>
+
+<p>The files in this package that are of greatest interest are:
+<ul>
+
+<li><b>@LBfgs/LBfgs.m</b> Implementation of the limited-memory BFGS representation.
+
+<li><b>lassoip.m</b> The primal-dual interior-point method
+illustrating use of the limited-memory BFGS representation for solving
+a constrained optimization problem. This function computes the linear
+regression model that maximizes the likelihood of the training data,
+subject to an L1 regularization term that enforces sparsity in the
+final solution (otherwise known in the statistics literature as the
+&quot;Lasso&quot;).
+
+<li><b>example.m</b> A short script demonstrating how to use the
+interior-point method for estimating the coefficients of the
+regression model.
+
+</ul>
+</p>
+
+<h3>Installation</h3>
+
+<p>You can download the MATLAB code for this project <a
+href="lbfgs-class.tar.gz">here</a>.</p>
+
+<h3>Using the LBfgs class</h3>
+ 
+<p>The best way to understand how to use the <code>LBfgs</code> class
+for MATLAB is to go through the example usage in the file
+<code>lassoip.m</code>.</p>
+
+<p><b>Initialization.</b> To create the initial quasi-Newton
+approximation, you would call the class constructor with code that
+looks something like this:<br>
+<pre>    B = LBfgs(n,m);</pre>
+This creates a new LBfgs object. The first input specifies the number
+of optimization variables, and the second input specifies the number
+of correction pairs. If you choose to store a large number of
+correction pairs, then the quasi-Newton approximation to the Hessian
+will be more accurate, but the drawback is that it will be more
+expensive to use.</p>
+
+<p><b>Updating.</b> Once you've visited two points in your
+optimization algorithm (with the appropriate line search ensuring that
+the Wolfe conditions are satisfied), you can update the BFGS
+approximation using the command<br>
+<pre>    B = update(B,s,y);</pre>
+The first input is the LBfgs object to be updated. The second input is the 
+difference between the two points, and the third input is the difference 
+between the gradient vectors and each of those points.</p>
+
+<p><b>Efficient multiplication.</b> If for any reason you need to
+multiply the symmetric quasi-Newton approximation times a vector,
+simply use the overloaded matrix multiplication operator and type
+<code>y = B * x</code>. How this multiplication is done efficiently is
+described in the journal paper by Byrd, Nocedal and Schnabel
+(1994). (See the references below.)</p>
+
+<p><b>Efficient linear solver.</b> Another key method for the LBfgs
+class efficiently computes the solution to a system of linear
+equations of the form<br>
+<pre>    (W + B) x = -b</pre>
+To calculate the solution to this system, call<br>
+<pre>    x = solve(B,b,W)</pre>
+
+The first input is the quasi-Newton representation. The second input
+is the vector on the right-hand side of the linear system of
+equations. The third input is a sparse, symmetric matrix. Note that
+this matrix may be greater than the size of the limited-memory
+approximation to the Hessian, in which case we only add <code>B</code>
+to the left-left portion of <code>W</code>. <b>Note:</b> to use this
+linear solver correctly, you must first add to the matrix
+<code>W</code> the scaling factor &quot;sigma&quot; times the identity
+matrix. For instance, if <code>W</code> has the same dimensions as the
+quasi-Newton approximation, you would type the following:<br>
+<pre>    W = W + B.sigma * eye(n);</pre>
+before calling the <code>solve</code> method. This method is
+particularly useful for efficiently solving the primal-dual systems
+that arise in interior-point methods; provided the matrix
+<code>W</code> has a nice sparsity structure (e.g. block diagonal),
+then computing the factors of this system will be done very
+quickly. This is exactly the case for the primal-dual interior-point
+solver implemented in <code>lassoip.m</code>.</p>
+
+<h3>References</h3>
+
+<p>Richard H Byrd, Jorge Nocedal, Robert B Schnabel
+(1994). Representations of quasi-Newton matrices and their use in
+limited memory methods. Mathematical Programming, Vol. 63, No. 1.,
+pp. 129-156.</p>
+
+<p>Jorge Nocedal and Stephen J. Wright (2006). Numerical Optimization,
+2nd edition. Springer.</p>
+
+<p>R. A. Waltz, J. L. Morales, J. Nocedal, D. Orban (2006). An interior
+algorithm for nonlinear optimization that combines line search and
+trust region steps. Mathematical Programming, Vol. 107, No. 3.,
+pp. 391-408.</p>
+
+</td></tr>
+
+<tr>
+<td align=right><br><font color="#666666" size=2>June 8, 2009</font></tr>
+</table>
+</body>
+</html>

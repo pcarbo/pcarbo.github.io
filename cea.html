@@ -1,0 +1,148 @@
+<html>
+<title>Bayesian classifier tutorial</title>
+<body bgcolor="#FFFFFF">
+
+<center>
+<br>
+<table align="center" border=0 width=560 cellspacing=0
+cellpadding=0>
+<tr><td valign=top>
+
+<center><h2>Bayesian classifier tutorial</h2>
+by Peter Carbonetto and Hendrik K&uuml;ck
+</center>
+
+<p>In this tutorial, we describe in a step-by-step manner the MATLAB
+script <code>example2classes</code>. This script trains and tests the
+Bayesian classifier on a large, simulated data set in which the data
+points belong to either one of two classes. Subsequently, we describe
+how to modify these steps to train on data with more than two classes,
+as in the MATLAB script <code>example4classes</code>.</p>
+
+<p>The script <code>example2classes</code> follows these basic steps:</p>
+
+<ol>
+<li>Load the training and test data.
+
+<li>Run the Markov Chain Monte Carlo (MCMC) algorithm to compute the
+posterior distribution of the model parameters given the data.
+
+<li>Obtain predictions on both the training and test sets by running
+another Monte Carlo algorithm.
+
+<li>Plot the results.
+</ol>
+
+<p>We shall describe each of these steps in turn. We encourage the
+reader to refer to the MATLAB script file while proceeding through
+this tutorial.</p>
+
+<h4>Loading the data</h4>
+
+<p>The file <code>ubc_data.mat</code> already contains the data in the
+proper format, so we simply load the data by calling
+<code>load('ubc_data.mat')</code>. The MATLAB variable
+<code>data</code> has two fields</p>
+
+<p><code><pre>  data.train
+  data.test
+</pre></code></p>
+
+<p>Each of these fields in turn has three fields. For instance,
+<code>data.train</code> has the fields<p>
+
+<p><code><pre>  data.train.N
+  data.train.y
+  data.train.X
+</pre></code></p>
+
+<p>The field <code>N</code> tells us how many data points are in the
+training set. The field <code>y</code> is a vector of length
+<code>N</code> storing the class information. In this case, each entry
+is either 1 or 2. This information is necessary to train the
+model. The test data may also contain this information. If available,
+this is useful for evaluating the predictions of the model. Finally,
+<code>X</code> is an <code>F x N</code> matrix, where <code>F</code>
+is the dimension of the data.</p>
+  
+<h4>Training the model</h4>
+
+<p>Once we've loaded the data, the next step is to train the
+model. More precisely, we use an MCMC algorithm to compute the
+distribution of the model parameters given the training data. In our
+script, we train the model by calling</p>
+
+<p><code><pre>  model = trainmodel(data.train,'ssmcmctrain',f,K,lambda,...
+		     mu,nu,mua,nua,epsilon,a,b,s)
+</pre></code></p>
+
+<p>We've passed quite a lot of parameters here, and we now explain how
+to choose them. The first parameter, <code>f</code> is the function
+that measures distance between points. We use the Euclidean distance
+which is implemented in the file <code>dist2.m</code>.  <code>K</code>
+is the kernel function. We set it to the Gaussian kernel
+<code>kgaussian</code>. <code>lambda</code> is the scale or width of
+the kernel. Unfortunately, the performance can depend strongly on the
+choice of kernel with and it can only be tuned by hand. Next,
+<code>mu</code> and <code>nu</code> define the prior on the variable
+of the regression coefficients. While certainly a mouthfull, a
+reasonable choice is to set them to small values (e.g. 0.01), which
+means the prior is uninformative and it allows the model to adjust
+more readily to the data. The parameters <code>mua</code> and
+<code>nua</code> influence the MCMC acceleration technique. Small
+values increase the acceleration, but it may be wise to increase them
+for stability. We set both to 0.1. The parameter <code>epsilon</code>
+is a small value that ensures stability (i.e. full rank) of the
+resulting kernel matrices. If you get an error during training
+proclaiming that a matrix is not positive definite, you might try
+setting <code>epsilon</code> to a larger value. <code>a</code> and
+</code> determine the inverse Gamma prior on the variable selection
+parameter. We recommend setting <code>a = 1, b = N/50</code>, where
+<code>N</code> is the number of points in the training data
+set. Finally, <code>s</code> is the number of samples of the model
+parameters to generate. It is not known how to choose this parameter
+sensibly, and usually depends on the patience of the practioner. If
+this value is large, it will take a long time to train the model and
+produce predictions on the test set.</p>
+
+<p>Upon completion, the MATLAB function <code>trainmodel</code>
+outputs a structure <code>model</code> that contains all the
+information needed to make predictions.</p>
+
+<h4>Testing the model</h4>
+
+<p>The two script lines</p>
+
+<p><code><pre>  pytrain = testmodel(data.train,'ssmcmctest',model);      
+  pytest  = testmodel(data.test,'ssmcmctest',model);
+</pre></code></p>
+
+<p>generate predictions on the training and test data sets. The output
+to the <code>testmodel</code> function is an <code>C x N</code>
+matrix, where <code>C</code> is the number of classes. Each entry
+contains the probability that a data point is predicted to belong to a
+certain class. Since the model outputs valid probabilities, the columns of the matrix should sum to one.</p> 
+
+<h4>Plotting the results</h4>
+
+<p>The remainder of the script plots the results. First, we show the
+receiver operating curve (ROC) plots for the training and test sets
+using the function <code>evaluateresults</code>. Curves that approach
+the top-left corner of the plot are indicate better performance. Since
+the data points are distributed on the plane, we can easily plot the
+decision boundary with the MATLAB function
+<code>plotdecisionbndry</code>.</p>
+
+<h4>Extending the script to multiway classification</h4>
+
+<p>The procedure is essentially the same for classifying data sets
+that have more than two categories. We have provided two MATLAB
+functions for training on multiclass data and making predictions:
+<code>ssmcmcmultitrain</code> and <code>ssmcmcmultitest</code>. It is
+not possible to draw the ROC plots on the multiclass data, but we in
+the script <code>example4classes<code> we plot the four possible
+two-way decisions.</p>
+
+</td></tr></table> 
+</body> 
+</html>

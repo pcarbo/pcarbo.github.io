@@ -1,0 +1,102 @@
+<html>
+<title>MATLAB primal-dual interior-point solver for convex programs
+with constraints</title>
+<body bgcolor="#FFFFFF">
+
+<center>
+<br>
+<table align="center" border=0 width=460 cellspacing=0
+cellpadding=0>
+<tr><td valign=top>
+
+<center><h2>MATLAB implementation of a primal-dual interior-point solver for 
+convex programs with constraints</h2>
+by Peter Carbonetto<br>
+Dept. of Computer Science<br>
+University of British Columbia
+</center>
+
+<p>There are some very excellent software packages for solving constrained
+optimization problems (such as 
+<a href="http://projects.coin-or.org/Ipopt">IPOPT</a>). My code is not as
+efficient or as robust or as flexible as others, but it has the virtue 
+of being simple (the solver is only <b>150 lines</b> long!) and 
+(relatively) easy to understand and use, and still works 
+pretty well. It should also be reasonably fast for optimization 
+problems that aren't too demanding.</p>
+
+<p>My MATLAB code is based on the recent work in interior-point methods,
+specifically those methods that keep track of both the primal and dual
+optimization variables (hence primal-dual methods). These methods
+are special because they are numerically stable under a wide range
+of conditions, so they should work well for many different types of 
+constrained optimization problems. That being said, you can always 
+find a constrained optimization problem that is difficult enough to
+break these methods, so be careful! See below for a brief list of 
+references that lay the foundation for this code.</p>
+
+<p> I use a merit function which ensures global convergence (see 
+the references below). What this means for you is that you don't have 
+to use the Newton step (and compute the Hessian of the objective, which
+might be expensive to compute) to be guaranteed to converge to the 
+optimal solution. For instance, you could use a quasi-Newton approximation
+to the Hessian instead, which is computed using the gradient information.</p>
+
+<p>If you have any questions, praise, or comments, or would like to
+report a bug, do not hesitate to contact <a
+href="index.html">me</a>. I've tested this software in MATLAB
+version 7.5.</p>
+
+<h4>License</h4>
+
+This work is licensed under the 
+<a href="http://www.gnu.org/licenses/gpl.html">GNU Public license</a>.
+Please cite the source as Peter Carbonetto, Department of Computer Science,
+University of British Columbia.
+
+<h4>Installation and use</h4>
+
+<p>Click <a href="convexprog.tar.gz">here</a> to download a compressed 
+TAR archive containing six MATLAB files. The interior-point solver is 
+<code>ipsolver.m</code>. There are also two files for a demonstration
+of how to use my MATLAB function to find the solution to a convex 
+quadratically-constrained quadratic program, and there are another 
+three files which comprise a demonstration of logistic regression,
+again using my implementation of the primal-dual interior-point 
+solver. If you don't know what logistic regression is and how 
+it is used for classification, and how it is connected to 
+constrained, convex programming, I highly recommend reading up on it. 
+See the bottom of this page for some suggested references on this topic.</p>
+
+<p>If you type <code>help ipsolver</code> in the MATLAB console, you will see 
+instructions on how to use the solver for your constrained optimization
+problem. I also highly recommend running and understanding the two 
+examples I provided, since they should give you a good idea how to 
+use solver in your own MATLAB script.</p>
+
+<h4>Some introductory references on interior-point methods and
+logistic regression</h4>
+
+<p>Stephen Boyd and Lieven Vandenberghe (2004). Convex Optimization. 
+Cambridge University Press.</p>
+
+<p>Jorge Nocedal and Stephen J. Wright (2006) Numerical Optimization, 
+2nd edition. Springer.</p>
+
+<p>Margaret H. Wright (1991). Interior methods for constrained 
+optimization. Acta Numerica, pp. 341--407.</p>
+
+<p>Paul Armand, Jean C. Gilbert, and Sophie Jan-J&eacute;gou (2000). 
+A Feasible BFGS Interior Point Algorithm for Solving Convex Minimization
+Problems. SIAM Journal on Optimization, Vol. 11, No. 1, pp. 199-222.</p>
+
+<p>Trevor Hastie, Robert Tibshirani and Jerome Friedman (2001). The 
+Elements of Statistical Learning. Springer.</p>
+
+</td></tr>
+
+<tr>
+<td align=right><br><font color="#666666" size=2>May 21, 2008</font></tr>
+</table>
+</body>
+</html>
