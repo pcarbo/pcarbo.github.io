@@ -1,0 +1,113 @@
+Written by Peter Carbonetto
+Date: October 22, 2001
+
+Time & Space Complexity
+-----------------------
+1. Analyse the procedure. Try sample outputs.
+2. Find the general time/space complexity using the droid model.
+3. Express it in Big-O notation.
+
+1. (define fred
+     (lambda (a)
+       (if (<= a 1)
+           1
+           (* a (fred (- a 2))))))
+
+2. (define barney
+     (lambda (n)
+       (if (<= n 3)
+           1
+           (+ n (barney (- n 1)) 
+                (barney (- n 1))))))
+
+
+3. (define pebbles
+     (lambda (p q)
+        (if (<= q 1)
+            1
+            (* p (pebbles p (/ q 3))))))
+
+4. (define wilma
+     (lambda (n)
+        (if (= n 1)
+            1
+            (* n (fred n) (wilma (- n 1))))))
+
+5. (define betty
+     (lambda (z)
+       (if (= z 1)
+           1
+           (* z (wilma z) (betty (- z 1))))))
+
+
+6. (define bambam
+     (lambda (a b)
+       (if (= a 1)
+           1
+           (* b (pebbles b a) (bambam (- a 1) b)))))
+
+7. (define count-in-other
+   (lambda (n1 n2)
+      (if (< n1 10)
+          (if (find? n1 n2) 1 0)
+          (+  (if (find? (remainder n1 10) n2) 1 0)
+              (count-in-other (quotient n1 10) n2)))))
+
+   (find? n1 n2) is O(logn1).
+
+
+Procedures that Return Procedures
+---------------------------------
+8. Write a procedure that computes power x^n in PeterScheme. PeterScheme 
+is the same as Scheme, except that it only allows one parameter for every 
+procedure. You should solve it using everything from Chapter 3.3 and 
+before. If you need direction, consider writing a procedure (power-to-the n).
+
+
+Let
+---
+These are the same: (convince yourself!.. try some examples)
+
+(let ((name1 value1)
+      (name2 value2)
+      ...
+      (namen valuen))
+  body)
+
+((lambda (name1 name2 ... namen) body) value1 value2 ... valuen)
+
+
+9. Evaluate
+(let ((a 6)
+      (b 10))
+  (let ((c (+ a b)))
+    (/ c 2)))
+
+10. Evaluate
+(let ((a +)
+      (b (a 3 4)))
+  (a b b))
+
+11. Evaluate
+(let ((a 5) 
+      (b 2))
+   (+ (let ((+ -))
+         (let ((a (- a 2))
+               (c (+ b a)))
+            (+ a (+ b c))))
+      (+ a b)))
+
+12. Evaluate
+(let* ((a +)
+       (b (a 3 4)))
+  (a b b))
+
+1. Time is O(n), space is O(n) 2. Time is O(2^n), space is O(n) 3. Time is 
+O(logn), space is O(logn) 4. Time is O(n^2), space is O(n) 5. Time is 
+O(n^3), space is O(n) 6. Time is O(nlogn), space is O(n) 7. Time is 
+O(logn1*logn2),  space is O(max(logn1,logn2)). 
+8. (define power-to-the (lambda (n) (lambda (x) (if (= n 0) 1 (* x 
+((power-to-the (- n 1)) x)))))) ; to calculate x to the n ((power-to-the 
+n) x) 
+9. 8 10. Error: unbound variable 11. 5 12. 14
+

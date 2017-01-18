@@ -1,0 +1,69 @@
+Written by Peter Carbonetto
+Date: October 15, 2001
+
+Big-Oh Notation
+---------------
+* O(n^2) > O(n). Is this statement true or false? It is false. For 
+example, O(n) could be describing 1000n and O(n^2) could be describing n^2. 
+
+* What can say that's true. We can say that O(n^2) grows faster than O(n).
+
+* f(n) is O(g(n)). This means that we can find two numbers c and n0 so 
+that for all numbers n >= n0, f(n) <= cg(n). So proving f(n) is O(g(n)) 
+lies in finding the appropriate values for c and n0.
+
+* Here's a strategy to solve the problem. Imagine that you are trying 
+prove that f(n) is O(g(n)). The devil is trying to prove you wrong. You start 
+first, and get to select two numbers c and n0. Once you've chosen these 
+two numbers, the devil goes next and will try to prove you wrong by 
+selecting an n >= n0 so that f(n) > cg(n). If the devil succeeds, you 
+lose. If the devil cannot find an n, you win and you've shown that f(n) is 
+O(g(n)).
+
+Time and Space Complexity
+-------------------------
+* Time complexity is the total number of procedure calls in terms of n 
+(your recursion variable). Using the droid model, you have to count the total 
+number of droids created. To calculate the time complexity for a 
+procedure, follow these steps:
+  1. Figure out what arguments affect your time complexity.
+  2. Figure out how many procedure calls there are as a function of your 
+     input. Use the droid model.
+  3. Express your answer in O(.) notation.
+
+* Space complexity is the maximum number of procedure calls in terms of n. 
+Using the droid model, it is the maximum number of droids that exist at 
+any one time.
+
+Procedures that Return Procedures
+---------------------------------
+(define twice
+   (lambda (x n)
+      (x n n)))
+
+* Can you describe this procedure in your own words? What it does it 
+perform procedure x on n and n. For example, (twice power n) returns n^n.
+
+* Generic tail recursion procedure:
+
+(define tail-recurse
+   (lambda (n sol n0 op)
+      (if (= n n0)
+          sol
+          (tail-recurse (- n 1) (op n sol) n0 op))))
+
+1. Write procedure (factorial n) using the generic tail recursion 
+procedure.
+2. Write (sum n) using the generic tail recursion procedure.
+3. Write (sum-squares n) using the generic tail recursion procedure.
+4. Write (power x n) using the generic tail recursion procedure.
+
+Answers
+-------
+1. (define factorial (lambda (n) (tail-recurse n 1 0 op)))
+2. (define sum (lambda (n) (tail-recurse n 0 0 op)))
+3. (define sum-squares (lambda (n) (tail-recurse n 0 0 sum-squares-op))) 
+(define sum-squares-op (lambda (n sol) (+ (* n n) sol)))
+4. (define power (lambda (x n) (tail-recurse n 1 0 (power-op x)))))
+(define power-op (lambda (x) (lambda (n sol) (* x sol))))
+

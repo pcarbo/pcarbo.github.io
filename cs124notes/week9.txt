@@ -1,0 +1,85 @@
+Written by Peter Carbonetto
+Date: November 5, 2001
+
+"When in doubt, diagram."
+          - Your textbook
+ 
+
+Quote
+-----
+Q1.  > (quote santa)
+Q2.  > (quote (a b))
+Q3.  > (list a b)
+Q4.  > (list 'a 'b)
+
+Can we do...?
+Q5.  (quote .)       
+Q6.  (quote ')       
+Q7.  (quote lambda)  
+Q8.  (quote ())      
+Q9.  (quote '(.))   
+Q10. (quote '(1 .)) 
+
+Q11. > (car '(a b c))  
+Q12. > (car '((a b) c))
+Q13. > (cdr '((a b) c))
+Q14. > (cadr '((a b) c))
+
+Q15. > (car (list + 2 3))
+Q16. > (car '(+ 2 3))    
+Q17. > ((car (list + 2 3)) 4 5)
+Q18. > ((car '(+ 2 3)) 4 5)       
+Q19. > (+ '5 '5)
+Q20. > (+ ''5 ''5)
+
+Q21. > (cadddr (list 1 2 3 4 5 6)) 
+
+
+Dot Notation
+------------
+* There are two rules for dot notation:
+    1. (cons 1 2) => (1 . 2)
+    2. Omit the dot and the enclosing parentheses when the 
+       item to the right of the dot is a pair or ().
+
+* To write something in dot notation, first use the first rule. Once 
+you've converted all your "cons" to dots, use the second rule.
+
+Q22. > (cons (cons 1 2) (cons 3 4))
+       Long:  ((1 . 2) . (3 . 4))
+       Short: ((1 . 2) 3 . 4)
+
+Q23. How would we create (1 (2 . 3) 4 5 . 6)? (The trick is go from right 
+to left, starting with the rightmost dot.)
+     > (cons 1 (cons (cons 2 3) (cons 4 (cons 5 6))))
+
+Q24. > (cons 1 (cons 2 (cons 3 '())))
+
+Q25. How would we create (1 2 (3 . 4))?
+
+Q26. > (cons '() '())
+Q27. > (cons (cons '() '()) '())
+
+
+The Whole Truth about Equality
+------------------------------
+=        For numbers only.
+string=? For strings only.
+char=?   For characters only.
+equal?   Works for everything.
+eqv?     Only if the two variables point to the same thing!
+         (You will learn about this later on.)
+eq?      Don't use it. It is a limited form of equal? that is quick but 
+         doesn't always work.
+
+
+Answers
+-------
+1. santa  2. (a b)  3. (list a b)  4. Error: reference to unbound
+variable a.  4. (a b)  5. No  6. No  7. Yes  8. Yes  9. No  10. No       
+11. a  12. (a b)  13. (c)  14. c  15. procedure[+]  16. +  17. 9           
+18. Error: expected procedure, given +  19. 10  20. Error: (quote 5) is  
+not a number.  21. 4 22. Long: ((1 . 2) . (3 . 4)) Short: ((1 . 2) 3 . 4) 
+23. (cons 1 (cons (cons 2 3) (cons 4 (cons 5 6)))) 24. (1 2 3) -- notice 
+that it is a list! 25. (list 1 2 (cons 3 4)) OR (cons 1 (cons 2 (cons 3 4) 
+'())) 26. (()) 27. ((()))   

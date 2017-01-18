@@ -1,0 +1,75 @@
+Written by Peter Carbonetto
+Date: October 29, 2001
+
+Let
+---
+(let* ((a 2)
+       (b (lambda (x) (* a x)))
+       (a 1))
+  (b 5))
+
+* You would think that the answer should be 5. However, the real answer is 
+10. Why? One way to see why is to convert the let* to nested lets, then 
+convert the nested lets to lambdas. 
+
+* There is a second way to reason why the answer is 10. When you bind b to 
+the lambda form, you keep track of what is knows about the world. Then, 
+when you evaluate the body of the lambda, it only has limited knowledge of 
+the world, based on when it was bound to b. Therefore, it only knows that 
+a is 2. It does not see that a is 1.
+
+* What happens when you remove the * on the let*? You will get an error 
+because it cannot find a at all in the body of the lambda!
+
+
+Structures
+----------
+(cons a b)
+(car pair)
+(cdr pair)
+
+
+Lists
+-----
+* This is an ADT that has been created for us.
+
+* Constructor: 
+  (list a b c) creates a list with elements a, b, and c.
+  (list) creates an empty list.
+
+* It also has the following methods:
+  (null? l) returns #t if the list is empty
+  (car l)   returns the first item of the list. 
+            e.g. (car (list 1 2 3)) returns 1
+  (cdr l)   returns the "rest" of the list -- the list with the first 
+            item removed from it. e.g. (cdr (list 1 2 3)) returns (list 2 3)
+  (cons elem l) creates a new list with "elem" tacked on to the 
+                beginning of the list. e.g. (cons 1 (list 2 3)) 
+                returns (list 1 2 3).
+
+* We can now use the list ADT to create the following methods (note that 
+we don't worry about HOW the ADT works -- we just assume it works right!):
+
+1. (find l x): returns the position of the item "x" in list "l", or #f
+   if can't be found.
+2. (remove l n): returns a list that has the nth item removed from it.
+3. (length l): returns the length of the list.
+4. (last-item l): returns the last item in the list. Assume l is not  
+   empty.
+5. (reverse l): reverses the list. A helper might be useful!
+
+
+Answers
+-------
+1. (define find (lambda (l x) (if (null? l) #f (if (equal? (car l) x) 0 (+ 
+1 (find (cdr l) x)))))) Note: the test for equality only works for simple 
+data types.
+2. (define remove (lambda (l n) (if (null? l) l (if (= n 0) (cdr l) (cons 
+(car l) (remove (cdr l) (- n 1)))))))
+3. (define length (lambda (l) (if (null? l) 0 (+ 1 (length (cdr l)))))) 
+Note: this can be done with tail recursion as well!
+4. (define last-item (lambda (l) (if (null? (cdr l)) (car l) (last-item 
+(cdr l)))))
+5. (define reverse (lambda (l) (reverse-helper l (list)))) 
+(define reverse-helper (lambda (l sol) (if (null? l) sol (reverse-helper 
+(cdr l) (cons (car l) sol)))))

@@ -1,0 +1,393 @@
+<HTML>
+
+<HEAD>
+<TITLE> Picture Representation Using Quad Trees </TITLE>
+</HEAD>
+
+
+<BODY>
+
+<center>
+<H3>
+<A HREF="http://www.mcgill.ca/">McGill University:</A><br>
+<A HREF="http://www.cs.mcgill.ca/">School of Computer Science</A><br>
+Winter 1999 Projects for
+<A HREF="http://jeff.cs.mcgill.ca/~luc/251.html">308-251B</A>
+</H3>
+</center>
+<center>
+<H3> DATA STRUCTURES AND ALGORITHMS </H3>
+</center>
+<center>
+<H3> Project #32: PICTURE REPRESENTATION USING QUAD TREES -- Winter 1999</H3>
+</center>
+<P align ="right"><font color="#aa5511">Last update: March 4, 1999</font></P>
+
+
+
+<HR>
+
+<left><H3>Introduction</H3></left>
+
+<P>The object of this article to discuss different computer representations of pictures. Particularily, it focuses on a representation strategy which takes advantage of the data structure known as the quad tree. This article also discusses the advantages and disadvantages of the quad tree as a structure for computer graphics. Before going any further, we should define what is meant by a picture.</P>
+
+<P>The definifition of a <I>picture</I> is a two-dimensional array, where the elements of the array are coloured points. This seems to be the most intuitive definition, and in fact 2-d arrays are most commonly used to store pictures on computers. Here is an example of an image represented as a two-dimensional array. Each <I>pixel</I> is an element of the array.</P>
+
+<CENTER>
+<TABLE WIDTH=198>
+<TR ALIGN=CENTER>
+<TD>
+<IMG SRC="image1.gif" WIDTH=198 HEIGHT=198></CENTER>
+</TD>
+</TR>
+<TR ALIGN=CENTER>
+<TD>
+<B><I>8 x 8 pixel picture represented in a two-dimensional array</I></B>
+</TD>
+</TR>
+</TABLE>
+</CENTER>
+
+<P>A two-dimensional array is not the only way to represent pictures, nor is it necessarily the most optimal. </P>
+
+<HR>
+
+<left><H3>Definition of Quad Tree</H3></left>
+
+<P>A <I>quad tree</I> is a tree whose nodes either are leaves or have 4 children. The children are ordered 1, 2, 3, 4.</P>
+
+<HR>
+
+<left><H3>The Quad Tree Strategy</H3></left>
+
+<P>Here we will outline the strategy behind using quad trees as a data structure for pictures. The key is to "Divide and Conquer".</P>
+
+<P>Let's say we divide the picture area into 4 sections. Those 4 sections are then further divded into 4 subsections. We continue this process, repeatedly dividing a square region by 4. We must impose a limit to the levels of division otherwise we could go on dividing the picture forever. Generally, this limit is imposed due to storage considerations or to limit processing time or due to the resolution of the output device. A <I>pixel</I> is the smallest subsection of the quad tree.</P>
+
+<P>To summarise, a square or <I>quadrant</I> in the picture is either:
+<UL>
+	a) entirely one colour<BR>
+	b) composed of 4 smaller sub-squares
+</UL>
+</P>
+
+<P>In terms of a quad tree, the children of a node represent the 4 quadrants. The root of the tree is the entire picture.</P>
+
+<CENTER>
+<TABLE WIDTH=400>
+<TR ALIGN=CENTER>
+<TD>
+<IMG SRC="image2.gif" WIDTH=400 HEIGHT=138></CENTER>
+</TD>
+</TR>
+<TR ALIGN=CENTER>
+<TD>
+<B><I>First three levels of a quad tree</I></B>
+</TD>
+</TR>
+</TABLE>
+</CENTER>
+
+<P>To represent a picture using a quad tree, each leaf must represent a uniform area of the picture. If the picture is black and white, we only need one bit to represent the colour in each leaf; for example, 0 could mean black and 1 could mean white.</P>
+
+<P>Note that no node may allow all its descendants to have the same colour. A minimum level of division must be maintained.</P>
+
+<HR>
+
+<left><H3>Back to the Example</H3></left>
+
+<P>This is how the above image could be stored in a quad tree. </P>
+
+<CENTER>
+<TABLE WIDTH=208>
+<TR ALIGN=CENTER>
+<TD>
+<IMG SRC="image3.gif" WIDTH=208 HEIGHT=198></CENTER>
+</TD>
+</TR>
+<TR ALIGN=CENTER>
+<TD>
+<B><I>8 x 8 pixel picture represented in a quad tree</I></B>
+</TD>
+</TR>
+</TABLE>
+</CENTER>
+
+<CENTER>
+<TABLE WIDTH=544>
+<TR ALIGN=CENTER>
+<TD>
+<IMG SRC="image4.gif" WIDTH=544 HEIGHT=136></CENTER>
+</TD>
+</TR>
+<TR ALIGN=CENTER>
+<TD>
+<B><I>The quad tree of the above example picture. The quadrants are shown in counterclockwise order from the top-right quadrant. The root is the top node. (The 2nd and 3rd quadrants are not shown.)</I></B>
+</TD>
+</TR>
+</TABLE>
+</CENTER>
+
+<P>One way to efficiently store the quad tree in binary format is to use the following scheme:</P>
+
+<CENTER>
+<TABLE WIDTH=260>
+<TR ALIGN=CENTER>
+<TD>
+<TABLE BORDER=1>
+<TR><TD>
+<IMG SRC="image5.gif" WIDTH=256 HEIGHT=206></CENTER>
+</TD></TR>
+</TABLE>
+</TD>
+</TR>
+<TR ALIGN=CENTER>
+<TD>
+<B><I>A scheme for storing quad tree representations of images.</I></B>
+</TD>
+</TR>
+</TABLE>
+</CENTER>
+
+<P>This is what the picture looks like in binary using the above scheme (only the first quadrant is shown, the rest can be easily deduced):</P>
+
+<CENTER>
+<IMG SRC="image6.gif" WIDTH=352 HEIGHT=8></CENTER>
+</CENTER>
+
+<P>There are certain cases the quad tree implementation shown above is an efficient way of storing images. Such a case occurs often in satellite imaging, because there is usually large uniform regions along with small, detailed regions. For most applications, there is little improvement in storage. The advantage of using a quad tree does not lie in storage, but the speed of manipulation of an image. Before we discuss the advantages and disadvantages, we will first outline a quad tree ADT.</P>
+
+<HR>
+
+<left><H3>A Quad Tree ADT</H3></left>
+
+<P>
+Definitions:
+<UL TYPE=DISC>
+	<LI>A node is <I>transparent</I> if it is composed of sub-squares.
+	<LI>A node is <I>neutral</I> if a no colour has been assigned to it.
+</UL>
+</P>
+
+<P>This is not the only quad tree ADT because we have made certain design decisions before hand. But it serves to illustrate the important features of a quad tree.</P>
+
+<P>This ADT is an <I>explicit</I> quad tree, meaning every node is stored regardless whether it is displayed in the picture. Thus, there may be nodes stored on the tree that are in fact not accessed when displaying the picture on an output device. A node is not used if at least one of its ancestors is not transparent.</P>
+
+<P>Note that if there are <FONT FACE="courier">n</FONT> pixels in the image, then it is easy to show that there are approximately <FONT FACE="courier">1.3n</FONT> nodes in an explicit tree.</P>
+
+<P>There are 4 primitive procedures:</P>
+<UL>
+	1. Ancestor Check<BR>
+	2. Division to a Quad<BR>
+    3. Tree Traversal<BR>
+	4. Reassembly
+</UL>
+</P>
+	
+<P><B>1. Ancestor Check</B><BR>
+Given a node as a parameter, Ancestor Check returns TRUE if the node is accessed to display the picture. If one of its ancestors is not transparent, then that quadrant will never be drawn.</P>
+
+<P>The algorithm must check all the ancestors of the given node, starting at the root. If one of the ancestors is not transparent, the algorithm quits and returns FALSE.</P>
+
+<P><B>2. Division to a Quad</B><BR>
+During manipulation of an image, we may need to divide a uniform square into sub-squares. Given a node in the quad tree, it divided it into quadrants.</P>
+
+<P>The algorithm is relatively simple. The algorithm checks the parent of the given node. If the parent is not transparent:<BR>
+1.) store the colour of the parent<BR>
+2.) make the parent transparent<BR>
+2.) the 3 remaining children are created and the colour of the parent is transferred to the children.<BR>
+The algorithm is then recursively called on the parent of the given node.</P>
+
+<P><B>3. Tree Traversal</B><BR>
+Given a node, Tree Traversal generates the sons of the node, and then repeats the process on each of the sons.</P>
+
+<P><B>4. Reassembly</B><BR>
+After the colour of a square is changed, it is possible that it has the same value of its tree brother nodes. If that is the case, the colour is transferred to the father to maintain the requirement of a minimum level of division.</P>
+
+<P>Given a node as a parameter, the algorithm generates the brothers of that node. If all the nodes have the same colour, the colour is transferred to the parent and the algorithm is recursively called on the parent. Otherwise, the algorithm quits.</P>
+
+<HR>
+
+<left><H3>Advantages and Disadvantages of Quad Tree Picture Representation</H3></left>
+
+<P>Why are quad trees used extensively in computer graphics? Mainly, quad trees can be manipulated and accessed much quicker than other models. For that reason, quad trees are very popular in fractal graphics. Recursive pictures can be implemented easily using quad trees: the root of the quad tree has four children, where one of the children is the actual image and the other three point to the root.</P>
+
+<CENTER>
+<TABLE WIDTH=298>
+<TR ALIGN=CENTER>
+<TD>
+<IMG SRC="image7.gif" WIDTH=298 HEIGHT=296></CENTER>
+</TD>
+</TR>
+<TR ALIGN=CENTER>
+<TD>
+<B><I>A recursive image &aacute la Escher. Click <A HREF="http://w3imagis.imag.fr/Membres/Fredo.Durand/Quad/rapport.html">here</A> for the source.</I></B>
+</TD>
+</TR>
+</TABLE>
+</CENTER>
+
+<P>Other advantages of quad trees include:
+<UL TYPE=DISC>
+<LI>Erasing a picture takes only one step. All that is required is to set the root node to neutral.
+
+<LI>Zooming to a particular quadrant in the tree is a one step operation.
+
+<LI>To reduce the complexity of the image, it suffices to remove the final level of nodes.
+
+<LI>Accessing particular regions of the image is a very fast operation. This is useful for updating certain regions of an image, perhaps for an environment with multiple windows.
+</UL>
+</P>
+
+<P>The only drawback of quad trees is that they take up a lot of space. If a quad tree is implemented using links, most of the memory will be taken up by the links. Nevertheless, there are ways of compacting quad trees, which is important for transferring data efficiently.</P>
+
+<HR>
+
+<left><H3>Conclusion</H3></left>
+
+<P>Quad trees have the ability to make image manipulation a very powerful process. The inherent recursive nature of quad trees turns a normally linear data structure into a recursive data structure. Consequently, images represented using quad trees are more dynamic, which is why they are well suited for image manipulation, imaging in geography and fractals.</P>
+
+<HR>
+
+<left><H3>Links to related material</H3></left>
+
+<P>
+<TABLE>
+
+<TR VALIGN=TOP>
+<TD>
+<A HREF="http://www.cs.umd.edu/users/brabec/quadtree/rectangles/recttree.html">Rect Quadtree Demo</A>
+</TD>
+<TD>
+  A Java Applet demonstration of the construction of an image using a quad tree.
+</TD>
+</TR>
+
+<TR VALIGN=TOP>
+<TD>
+<A HREF="http://www.cs.umd.edu/users/brabec/quadtree/index2.html">Spatial Index Demos</A>
+</TD>
+<TD>
+  Links to several quadtree demos, including the Rect Quadtree Demo.
+</TD>
+</TR>
+
+<TR VALIGN=TOP>
+<TD>
+<A HREF="http://web.mit.edu/cyrilm/www/6.838/octree.html">Octree/Quadtree</A>
+</TD>
+<TD>
+  Diagrams to illustrate the graphical implementation of a quadtree.
+</TD>
+</TR>
+
+<TR VALIGN=TOP>
+<TD>
+<A HREF="http://www.cs.strath.ac.uk/~db/biography/SCT/quaddemo.html">SCT DIY Quad-Tree Demo</A>
+</TD>
+<TD>
+  An example of using the quad-tree to selectively compress an image.
+  A java applet demonstration is included.
+</TD>
+</TR>
+
+<TR VALIGN=TOP>
+<TD>
+<A HREF="http://ltswww.epfl.ch/pub_files/brigger/thesis_html/node21.html#fiquad_tree">Quad-tree decomposition</A>
+</TD>
+<TD>
+  Explanation of quad tree with useful references.
+</TD>
+</TR>
+
+<TR VALIGN=TOP>
+<TD>
+<A HREF="http://www.ics.uci.edu/~eppstein/gina/quadtree.html">Geometry In Action: Quadtrees</A>
+</TD>
+<TD>
+  A list of applications of quadtrees.
+</TD>
+</TR>
+
+<TR VALIGN=TOP>
+<TD>
+<A HREF="http://w3imagis.imag.fr/Membres/Fredo.Durand/Quad/rapport.html">Manipulation d'images repr&eacute;sent&eacute;es r&eacute;cursivement</A>
+</TD>
+<TD>
+  Using Quadtrees as a data structure for recursive pictures. Shows how to
+  manipulate and display recursive images.
+</TD>
+</TR>
+
+</TABLE>
+
+<HR>
+
+<left><H3>References</H3></left>
+
+<P>
+<OL>
+
+<LI>
+Hunter, G. M. and Steiglitz, K. <FONT COLOR="GREEN"><I>Operations on images using quad trees</I></FONT>. IEEE Transactions on Pattern Analysis and Machine Intelligence, vol. PAMI-1, no. 2, April 1979: 145-154.<BR>
+<I>Algorithms for superposing quad trees, building a quad tree given a polygon and colouring the interior of polygons.</I>
+</LI>
+
+<LI> Ranade, S. and Shneier M. <FONT COLOR="GREEN"><I>Using quadtrees to smooth images</I></FONT>. PWS Publishing Co.,1995: 376-399<BR>
+<I>Algorithms for smoothing images represented as quadtrees.</I>
+</LI>
+
+<LI> Samet, H. <FONT COLOR="GREEN"><I>Region representation: quadtrees from binary arrays</I></FONT>. Computer Graphics & Image Processing, vol. 13, no. 1, May 1980: 88-93<BR>
+<I>Algorithms for smoothing images represented as quadtrees.</I>
+</LI>
+
+<LI> Samet, H. <FONT COLOR="GREEN"><I>Applications of Spatial Data Structures: Computer Graphics, Image Processing, and GIS</I></FONT>. Addison-Wesley, Reading, MA, 1990<BR>
+<I>Algorithms for quadtrees.</I>
+</LI>
+
+<LI> Samet, H. <FONT COLOR="GREEN"><I>The Design and Analysis of Spatial Data Structures</I></FONT>. Addison-Wesley, Reading, MA, 1990<BR>
+<I>Algorithms for quadtrees.</I>
+</LI>
+
+<LI> Shneier, M. <FONT COLOR="GREEN"><I>Calculations of geometric properties using quadtrees</I></FONT>. Computer Graphics & Image Processing, vol. 16, no. 3, July 1981: 296-302.<BR>
+<I>Algorithms for computing geometric properties of binary images represented as quadtrees.</I>
+</LI>
+
+<LI>
+Woodwark, J. R. <FONT COLOR="GREEN"><I>The Explicit quad tree as a structure for computer graphics</I></FONT>.  
+The Computer Journal, vol. 25, 1982: 383-390.<BR>
+<I>An overview of the implemention of quad trees for computer graphics.</I>
+</LI>
+
+</OL>
+
+<HR>
+
+<left><H3>Web page creators</H3></left>
+
+<P>
+This web page was created by
+<A HREF="http://www.cs.mcgill.ca/~pcarbo/">Peter Carbonetto</A>
+  (<A href="mailto:pcarbo@po-box.mcgill.ca">pcarbo@po-box.mcgill.ca</A>).
+Most of the figures were drawn using Adobe Illustrator and GraphicConverter.
+The webpage was created on a Macintosh computer using the the freeware
+text editor BBEdit Lite.
+</P>
+
+<P>
+Please report any errors to <A href="mailto:pcarbo@po-box.mcgill.ca">Peter Carbonetto</A>.
+</P>
+
+
+<HR>
+
+<ADDRESS>
+
+Last updated March 4, 1999 by
+<A HREF="mailto:pcarbo@po-box.mcgill.ca">Peter Carbonetto</A>.
+Copyright &copy; 1999, Peter Carbonetto. 
+
+</ADDRESS>
+</BODY>
+</HTML>
+

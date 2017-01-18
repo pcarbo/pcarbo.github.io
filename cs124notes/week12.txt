@@ -1,0 +1,78 @@
+Written by Peter Carbonetto
+Date: November 26, 2001
+
+reverse!
+--------
+* Let's create a new reverse! procedure. Instead, let's just switch the 
+  directions of the arrows instead of swapping the values at opposite ends 
+  of the list.
+
+* The trick is to keep track of an arrow to the current pair in the list, 
+  and an arrow to the previous pair. Then we set the cdr of the current 
+  pair to point to the previous pair. If we do that for all the pairs, 
+  then we've reversed the list!
+
+* Description of algorithm: At every step we do the following...
+  1. First, we check to see that we're at the end of the list. In other 
+     words, curr is ().
+  2. Then, we need to save the value of (cdr curr). This is the arrow that 
+     points to the next pair in the list. If we don't do that, we'll lose 
+     the rest of the list!
+  3. We set the cdr of the current pair to point to the previous pair.
+  4. Finally, we call reverse-helper! and update the prev and curr arrows.
+
+Q1. Write a Scheme procedure for this algorithm.
+
+* There are two solutions provided below (1a and 1b). The first one is 
+what I wrote. The second solution, and a much better one in my opinion, 
+was provided by some of my clever students. 
+
+Q2. What is the value returned in the last line?
+  > (define a (list 1 2 3))
+  > (reverse! a)
+  > a
+
+Q3. What should we write if we want a to actually contain the reversed 
+list?
+
+
+The Environment Model
+---------------------
+* If you're not sure what to do, follow the rules!
+* Never erase a frame unless nothing else points to it.
+* The NEW lambda rule: It creates a procedure which contains parameters, a 
+body and arrow to the parent frame (the frame it is currently in).
+* The NEW procedure rule:
+    1. Create a new frame.
+    2. Bind the parameters to their given values.
+    3. Parent frame is the parent of the procedure when you created it.
+    4. Evaluate body of procedure in new frame.
+* The NEW name rule: look in frame, then in parent's frame, then in 
+grandparent's frame, etc.
+* Define: makes a binding in the current frame.
+* Let: creates a new frame. The parent is the frame you're currently in.
+
+Q4. How would you create a procedure "buffer" that behaves as follows:
+(buffer 1)        => #f
+(buffer 7)        => 1
+(buffer "santa")  => 7
+(buffer 'peter)   => "santa"
+
+Evaluate the following using the environment model...
+Q5. (buffer 4)
+Q6. (buffer 17)
+
+
+Answers
+-------
+1a. (define reverse! (lambda (l) (if (null? l) '() (let ((next (cdr l)))
+(begin (set-cdr! l '()) (reverse-helper! l next)))))) (define 
+reverse-helper! (lambda (prev curr) (if (null? curr) prev (let ((next (cdr 
+curr))) (begin (set-cdr! curr prev) (reverse-helper! curr next))))))
+1b. (define reverse! (lambda (l) (reverse-helper! '() l))) (define 
+reverse-helper! (lambda (prev curr) (if (null? curr) prev (let ((next (cdr 
+curr))) (begin (set-cdr! curr prev) (prev-helper! curr next))))))
+2. (1)  3. (set! a (reverse! a)) 4. (define buffer (let ((store #f))
+(lambda (x) (let ((result store)) (set! store x) result)))) Note: how 
+would you write that using lambda instead of let? 5. #f (see 
+http://www.cs.ubc.ca/~pcarbo/cs124notes/week12-diagram.html)  6. 4

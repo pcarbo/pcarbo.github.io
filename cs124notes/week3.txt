@@ -1,0 +1,53 @@
+Written by Peter Carbonetto
+Date: September 24, 2001
+
+Lecture notes
+-------------
+- #t --> true, #f --> false
+
+- (if condition true-result false-result)
+
+Questions
+---------
+1. Write a procedure that returns true if x is not zero.
+2. Write a procedure that returns true if x is a multiple of 3. 
+3. Write a procedure that returns true if 0 <= x <= 9. You cannot use 
+"and"!
+4. how can we write this code in a better way?
+(define check
+   (lambda (x)
+      (if (> x 65)
+          #f
+          #t)))
+
+5. Johannes Kepler's third law of planetary motion says that the square of 
+a planet's period of revolution around the sun is proportional to the 
+cube of its mean distance from the sun. In other words:
+
+   (period in earth years)^2 = (distance from sun in A.U.)^3
+
+Here are the periods of revolution of the other planets of our solar system: 
+
+       Mercury: 0.241 years, 57 900 000 km   
+       Mars: 1.88 years, 228 000 000 km
+       Jupiter: 11.9 years, 778 300 000 km
+
+Write a Scheme program that calculates and prints out the length of the 
+planet's orbit from it's distances from the sun, in kilometers. 
+Note that 1 A.U. = 150 000 000 km. A.U. stands for "astronomical units". 
+Also, I want the answer written using at least 3 procedures! Use 
+appropriate names and indenting.
+
+Answers
+-------
+1. (define not-zero? (lambda (x) (not (zero? x))))
+2. (define multiple-3 (lambda (x) (zero? (remainder x 3))))
+3. (define munge (lambda (x) (not (or (< x 0) (> x 9)))))
+4. (define check (lambda (x) (<= x 65)))
+5. (define year-length-from-km 
+      (lambda (km) 
+         (year-length-from-au (/ km 150000000))))
+   (define year-length-from-au 
+      (lambda (au) 
+         (cube (sqrt au))))
+   (define cube (lambda (x) (* x x x)))

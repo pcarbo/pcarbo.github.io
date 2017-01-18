@@ -1,0 +1,162 @@
+Written by Peter Carbonetto
+Date: November 12, 2001
+
+
+Quote
+-----
+* What happens is the compiler replaces every instance of 'x with (quote 
+x). Therefore, ''5 creates a list with elements quote and 5.
+
+Q1. > (car ''5)
+Q2. > (cdr ''5)
+Q3. > (+ ''5 ''5)
+Q4. > (car  '('1))
+Q5. > (cdr  '('1))
+Q6. > (caar '('1))
+Q7. > (cdar '('1)) 
+
+
+Problems Involving Lists
+------------------------
+Q8. Question #3, p. 226.
+Q9. Write a function "all-pairs" that takes a list and returns a list of 
+all pairs of the elements of the list. You can assume that all the 
+elements in the list are unique, but if you want you don't have to 
+make that assumption (but it will make the problem harder!) If it helps, 
+imagine that your list of elements in a deck of cards, and you want to 
+find all the possible pairs from the deck of cards. Hint: first find all 
+the pairs that use element 1.
+
+For example:
+> (all-pairs '(1 2 3 4))
+((1 2) (1 3) (1 4) (2 3) (2 4) (3 4))
+
+Bonus question: write a function "all-flushes", that takes n and a list 
+and returns all the ways you can create flushes of length n. Assume n > 0. 
+
+For example:
+> (all-pairs '(1 2 3 4))
+((1 2 3) (1 2 4) (1 3 4) (2 3 4))
+
+Vector ADT
+----------
+* We will create an ADT for vectors.
+* We will have the following components to our ADT:
+    1. A constructor
+    2. Accessors
+    3. Operations on the vectors (e.g. addition)
+* Note that the dimension of a vector is important, since we can't add two 
+vectors of different dimension. e.g. [1 2] + [4 2 3] doesn't make sense, 
+because the first is a 2D vector and the second is a 3D vector.
+* Essentially, [1 2 3] is shorthand for a vector name created using our 
+constructor. [1 2 3] is the same as (vector '(1 2 3)).
+
+The ADT (WHAT IT DOES)
+----------------------
+1. Constructor: (vector elems)
+2. Accessors:   (dim v)
+                (elems v)
+3. Methods:     (dim=? v w) returns #t if v & w have the same dimension.
+                (vector=? v w) returns #t if the vectors v & w are equal.
+                (v-bin op v w) performs operation "op" on the elements of 
+                               v and w. e.g. (v-bin + v w) adds the 
+                               elements of v and w.
+                (v+ v w) adds vectors v and w.
+                (v- v w) subtracts vectors v and w.
+                (iden v w) creates a vector filled with 0's of dimension d.
+                (
+
+The Implementation (HOW IT WORKS)
+---------------------------------
+1. Constructor: It is given the elements in a list and it returns a 
+vector structure. Note: the dimension must be part of the structure!
+(define vector
+   (lambda (elems)
+      (cons (length elems) elems)))
+
+2. Accessors:
+
+(define dim
+   (lambda (v)
+      (car v)))
+
+(define elems
+  (lambda (v)
+    (cdr v)))
+
+3. Methods
+
+(define dim=?
+   (lambda (v w)
+      (= (dim v) (dim w))))
+
+Here we define the (define vector=? v w). Essentially, what we first do is 
+test to see if the dimension of v and w are equal. Then, we test to see 
+that v and w have the same elements. I had a more complicated solution 
+before, but why do more work than necessary?
+
+   (lambda (v w)
+      (if (dim=? v w)
+          (equal? (elems v) (elems w))
+          #f))))
+
+The reason we create a procedure called v-bin is that it allows us to 
+prevent a lot of duplicated work. We will see that addition and 
+subtraction are very similar! How v-bin works: we first test to see if 
+the vectors have the same dimension. If not, we quit! Then, we create a 
+new list recursively. At the recursive step (the hardest part of the 
+recursion), we cons: 
+1. op applied first element of v and first element of w
+2. op applied to the rest of the list.
+(define v-bin
+   (lambda (op v w)
+      (letrec ((helper (lambda (v w)
+                          (if (null? v)
+                              '()
+                              (cons (op (car v) (car w))
+                                    (helper (cdr v) (cdr w)))))))
+         (if (dim=? v w)
+             (helper (elems v) (elems w))))))
+
+(define v+
+   (lambda (v w)
+      (v-bin + v w)))
+
+(define v-
+   (lambda (v w)
+      (v-bin - v w)))   
+
+(define iden
+   (lambda (d)
+      (letrec ((list-of-zeros (lambda (n) (if (= n 0) '() 
+                                              (cons 0 (list-of-zeros (sub1 n)))))))
+	 (vector (list-of-zeros d)))))
+
+accumulate is essentially the same as reduce: we apply a single operation 
+to all the elements recursively of the vector. For example, (accumulate 
++ 0 v) returns the sum of all the elements of v.
+(define accumulate
+   (lambda (op base v)
+      (reduce op base (elems v))))
+
+(define dot-product
+   (lambda (v w)
+      (if (dim=? v w)
+          (accumulate + 0 (bin-op * v w)))))
+
+The length is equal to the square root of the dot product.
+(define length
+   (lambda (v)
+      (sqrt (dot-product v))))
+
+
+Answers
+-------
+1. quote  2. (5)  3. Error: (quote 5) is not a number.  4. ('1)  5. ()    
+6. quote  7. (1)  8. (define collect-evens (lambda (l) (filter (lambda 
+(x) (even? x) l)))  9. (define all-pairs (lambda (l) (if (null? l) '() 
+(append (map (lambda (x) (list (car l) x)) (cdr l)) (all-pairs (cdr
+l)))))) Bonus: (define all-flushes (lambda (n l) (if (< (length l) n) '()
+(if (= n 1) (map list l) (append (map (lambda (x) (cons (car l) x)) 
+(all-flushes (sub1 n) (cdr l))) (all-flushes n (cdr l)))))))
+              

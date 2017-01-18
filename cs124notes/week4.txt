@@ -1,0 +1,61 @@
+Written by Peter Carbonetto
+Date: October 1, 2001
+
+Lecture Notes
+-------------
+- The Fibonacci Sequence (1, 1, 2, 3, 5, 8, 13, ...). Each term is the 
+sum of the previous two terms.
+- Note that in our solution, we compute some solutions many times. For 
+example, we compute F(n-1) twice. Some solutions (e.g. F(n-20)) could be 
+computed hundreds of times.
+
+Steps to Solve Basic Recursion Problems
+0. Explore the problem by trying some examples.
+1. We need to solve the problem for n. Assume we have solved the problems 
+for all smaller numbers (n-1, n-2, ...). How can we use the solutions of 
+the smaller problems to solve for n?
+2. Identify the base case. In other words, the smallest n, the problem 
+that doesn't have any subproblems.
+3. Write the Scheme procedure. We must have an "if" statement to see if 
+we've reached the base case. 
+4. Finally, we make sure we're getting closer to the base case, not 
+further away.
+
+Tail Recursion
+- The recursion step is the absolute last step in the procedure. It 
+saves memory. Why? If you go to the droid model: the droid realises it has 
+nothing left to do so when it recruits another droid, it kills itself.
+- To turn a recursive procedure into a tail recursive procedure, we need 
+to: 1. pass the solution as one of the arguments, 2. the base case 
+returns the solution, 3. the recursive step has to be the last step in 
+the procedure, and 4. we need to modify the solution at each recursive 
+step.
+
+Questions
+---------
+
+A.) Factorial
+1. n! = n * (n-1)! 
+2. The base case is 0! = 1.
+3. (define factorial 
+      (lambda (n)
+         (if (= n 0)
+             1
+             (* n (factorial (- n 1))))))
+
+B.) Sum of squares. We want to compute i^2 + (i-1)^2 + ... + 2^2 + 1^2
+
+C.) Write factorial solution using tail recursion.
+
+D.) Write x^n (power of x to the n) using rail recursion.
+
+Answers
+-------
+A.) Steps: 1. n! = n*(n-1)! 2. Base case is 0! = 1. 3. (define factorial 
+(lambda (n) (if (= n 0) 1 (* n (factorial (- n 1))))))
+B.) 1. SS(i) = i^2 + SS(i-1) 2. Base case is SS(1) = 1 3. (define 
+sum-squares (lambda (i) (if (= i 1) 1 (+ (* i i) (sum-squares (- i 1))))))
+C.) (define factorial-tail (lambda (n sol) (if (= n 0) sol (factorial-tail 
+(- n 1) (* n sol))))) (define factorial (lambda (n) (factorial-tail n 1)))
+D.) (define power-tail (lambda (x n sol) (if (= n 0) sol (power-tail x (- 
+n 1) (* x sol))))) (define power (lambda (x n) (power-tail x n 1)))

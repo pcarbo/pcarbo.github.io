@@ -1,0 +1,61 @@
+Written by Peter Carbonetto
+Date: September 10, 2001
+
+Lecture notes
+-------------
+
+Why Scheme?
+1. It has a small set of rules so it is easy to learn.
+2. It forms the basis for most programming paradigms, including 
+object-oriented programming.
+3. It is not obscure. Used by many famous universities.
+
+Syntax: the set of rules that defines a grammar.
+Semantics: the set of rules that define the meaning of a sentence.
+
+The Rules
+1. If it is a numeral, the value is interpreted as base 10.
+2. If it is an application (i.e. a form), first convert the arguments into 
+values (from left to right) then apply the operator to the arguments.
+
+What is Lambda? 
+- Another way of saying a procedure.
+- The magic behind Scheme. 
+- It is an object just like variables. Think of a pasta maker: the pasta, 
+dough and pasta makers are all "things". Scheme treats variables and 
+procedures (i.e. lambda) interchangeably. 
+
+To evaluate a statement containing "lambda", follow these steps:
+1. Find the operator of the form. Locate the following components to the 
+lambda statement:
+     a. the word "lambda"
+     b. the parameters
+     c. the body
+2. Substitute the arguments of the form into the lambda parameters, and 
+replace every instance of these parameters in the body with the value.
+3. Evaluate the body. The value of the form is contained in the body of 
+the lambda statement.
+
+
+Questions
+---------
+
+Evaluate these Scheme statements one step at a time:
+1. (/ (- 9 3) (+ 1 1))
+2. (- (* 2 14) 8)
+3. (+ (< 2 3) (> 5 6))
+
+Create Scheme forms for the following expressions:
+4. C = 5/9 * (F - 32)
+5. y = ax^3 + bx^2
+6. Middle of two numbers
+
+Evaluate the following Scheme statements:
+7. ((lambda (x y z) (+ (* x y) z)) 3 4 5)
+8. ((lambda (a) ((lambda (b) (+ b 4)) (* a 3))) 6)
+
+
+Answers
+-------
+1. 2 2. 20 3. semantic error (note that there is no syntax error) 4. (* (/ 
+5 9) (- F 32)) 5. (+ (* a x x x) (* b x x)) 6. (/ (+ a b) 2) 7. 17 8. 22

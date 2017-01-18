@@ -1,0 +1,98 @@
+Written by Peter Carbonetto
+Date: October 8, 2001
+
+Flushes
+=======
+Let's change the problem from decks of cards to the UBC 
+womens' volleyball team. Imagine the roster is limited to 8 players, but 
+there are 12 players who want to join the team. The coach wants to know, 
+how many different teams can be created using the 12 players. We can use 
+recursion to solve this problem.
+
+Let's generalize this problem. Let's denote t for the number of roster 
+spots on the team, and n for the number of eligible players. Our 
+solution is num-teams(n, t). Note that is never less than t... we cannot 
+create a team if we don't have enough players to fill all the roster 
+spots.
+
+With Player #1, the coach has two options. The coach can either put the 
+player on the team, or cut her from the team. If the coach chooses her, 
+then there are n-1 spots to fill and n-1 players to choose from. If the 
+coach cuts her from the team, we still have t spots on the team to fill 
+but we now have only n-1 players to choose from. Since these are the only 
+two possible options for the coach, this forms our solution: 
+
+   num-teams(n, t) = num-teams(n-1, t-1) + num-teams(n-1, t)
+
+Next, we have to figure out our base cases. Since there are two variables, 
+we need two base cases. When we have a team of zero players (t=0), then 
+there is only one way to create this team: by choosing zero players. When 
+we have 0 players to choose from, there's no way we can create a team. 
+So...
+
+   1. Base case t=0: num-teams(n,0) = 1
+   2. Base case n=0: num-teams(0,t) = 0
+
+Note that for the second base case, num-teams(0,t) = 0 is only true when 
+the team size is not zero. Therefore, we always have to check the first 
+base case first.
+
+(define num-teams 
+   (lambda (n t)
+      (if (= t 0)
+          1
+          (if (= n 0)
+              0
+              (+ (num-teams (- n 1) (- t 1)) (num-teams (- n 1) t))))))
+
+
+Reverse digits (tail recursion)
+===============================
+> (reverse 12345)
+54321
+> (reverse 7)
+7
+
+- Our base case is when x is a single digit.
+- Let's find the recursive nature. Suppose we've already reversed the 
+digits of the smaller problem (e.g. suppose we've solved for 1234 in 
+(reverse 12345)). How can we find the final solution?
+
+Shuffle
+=======
+Note that in this problem we assume the two numbers have the same number 
+of digits.
+
+> (shuffle 123 456)
+142536
+> (shuffle 1 2)
+12
+> (shuffle 0 0)
+0
+
+- There are two base cases, when a=0 and b=0. However, since they both 
+have the same number of digits, we assume that when a=0, then b=0.
+- To find the recursion nature, assume you've solved for the smaller 
+problem, and try to find the final solution in terms of the smaller 
+problem. e.g. assume you have the answer to (shuffle 12 45), then how are 
+you going to find the answer to (shuffle 123 456)? 
+
+Shuffle (tail recursion)
+========================
+- Think about how you are going to compute the "solution parameter" to 
+step towards your solution. Pretend you are mid-way in a computation and 
+use a concrete example to help. How are you going to compute the next 
+step?
+
+Answers
+=======
+Reverse using tail recursion: (define reverse-tail (lambda (x sol) (if (< 
+x 10) (+ (* 10 sol) x) (reverse-tail (quotient x 10) (+ (* 10 sol) 
+(remainder x 10))))))) The first call is always (reverse-tail x 0).
+Shuffle: (define shuffle (lambda (a b) (if (= a 0) 0 (+ (remainder b 10)
+(* 10 (remainder a 10)) (* 100 (shuffle (quotient a 10) (quotient b 
+10)))))))  
+Shuffle using tail recursion: (define shuffle-tail (lambda (a b sol 
+multiply) (if (= a 0) sol (shuffle-tail (quotient a 10) (quotient b 10) (+ 
+(* multiply (remainder b 10)) (* multiply (* 10 (remainder a 10))) sol) (* 
+multiply 100)))))) Your first call will be (shuffle-tail a b 0 1).

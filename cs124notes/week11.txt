@@ -1,0 +1,89 @@
+Written by Peter Carbonetto
+Date: November 19, 2001
+
+* Peter's guidelines about mutation:
+   1. NEVER use quotes! Quotes are immutable.
+   2. ALWAYS use box and arrow diagrams!
+   3. Do not think of C pointers.
+   4. Do not mutation unless you absolutely have to.
+
+* Note that set-car!, set-cdr! and set! do not have return values. They 
+only have side effects.
+
+
+Problem Set #1
+--------------
+> (define y (list 4 5 6))
+> (define x (list 1 2 3))
+> (set-car! x 8)
+> x                        => Q1.
+
+> (define z (cdr y))
+> z                        => Q2.
+
+> (set-cdr! y (cdr x))     
+> y                        => Q3.
+> x                        => Q4.
+
+> (set-cdr! (cdr y) z)       
+> y                        => Q5.
+> x                        => Q6.
+
+
+Problem Set #2
+--------------
+Q7.
+> (define x (cons 1 2))
+> (define y 3)
+
+A cs122 student, intending to change the value of x to (1 3), types in 
+the expression (set! (cdr x) y). Why does he get an error? What would you 
+do instead?
+
+Q8.
+> (define list1 (list (list 'a) 'b))
+> (define list2 (list (list 'x) 'y))
+
+Complete the following lines in the Scheme evaluator. You are not allowed 
+to create any new pairs.
+
+> list1        => ((a) b)
+> list2        => ((x) y)
+> ...
+> ...
+> list1        => ((a x b) b)
+> list2        => ((x b) y)
+
+Q9.
+Now what happens when we do: (set-car! (cdr list1) (cadr list2))
+
+
+Problem Set #3
+--------------
+Q10. Write a procedure swap! that is given is given a list and two 
+positions in the list and swaps the values at those two positions.
+
+> (define x (list 'a 'b 'c 'd))
+> (swap l 0 3)
+> x   => (d b c a)
+
+Q11. Write a procedure reverse! that is given and a list and reverses 
+all the elements in the list. Note that swap! might be useful.
+
+> (define x (list 'a 'b 'c 'd))
+> (reverse x)
+> x   => (d c b a)
+
+
+Answers
+-------
+1. (8 2 3)  2. (5 6)  3. (4 2 3)  4. (8 2 3)  5. (4 2 5 6)  6. (8 2 5 6)
+7. He gets an error because (cdr x) evaluates to 2. You can't put 3 into
+the number 2. It doesn't make sense! You should type (set-cdr! x y).
+8. (set-cdr! (car list1) (car list2)) (set-cdr! (car list2) (cdr list1))
+9. list1 => ((a x y) y) list2 => ((x y) y)
+10. (define swap! (lambda (l x y) (let ((temp (list-ref l x))) (begin
+(list-set! l x (list-ref l y)) (list-set! l y temp)))))
+11. (reverse! (lambda (l) (reverse-helper! l 0 (sub1 (length l)))))
+(define reverse-helper! (lambda (l pos1 pos2) (if (> pos1 pos2) 'done
+(begin (swap! l pos1 pos2) (rev-help l (add1 pos1) (sub1 pos2))))))
