@@ -1,0 +1,297 @@
+<html>
+<title>Learning to recognize objects with little supervision</title>
+<body bgcolor="#FFFFFF">
+
+<center>
+<br>
+<table align="center" border=0 width=460 cellspacing=0
+cellpadding=0>
+<tr><td valign=top>
+
+<a name="title">
+<h2>Learning to recognize objects with little supervision</h2>
+
+<img alt="Pictures of cars" src="cars.gif" width=460 height=134><br>
+
+<p>This is the project webpage that accompanies the journal submission
+with the same name. See <a href="#pub">below</a> for published papers
+relevant to this project. Here you will find the <a
+href="#code">code</a> and <a href="#data">data</a> used in the
+experiments. This webpage is maintained by <a
+href="../index.html">Peter Carbonetto</a>.</p>
+
+<h3>People</h3>
+
+<p>The following people were involved in this project: <a
+href="../index.html">Peter Carbonetto</a>, <a
+href="http://lear.inrialpes.fr/people/dorko">Gyuri Dork&ograve;</a>,
+<a href="http://lear.inrialpes.fr/people/schmid">Cordelia Schmid</a>, <a
+href="http://www.cs.ubc.ca/&#126;nando">Nando de Freitas</a> and <a
+href="http://www.cs.ubc.ca/&#126;kueck">Hendrik K&uuml;ck</a>.</p>
+
+<a name="data">
+<h3>Data</h3>
+
+<p>We used six different databases to evaluate our proposed Bayesian
+model. Five of them were collected and made publicly available by
+other researchers. They are: <a
+href="http://www.robots.ox.ac.uk/~vgg/data3.html">airplanes</a>, <a
+href="http://www.robots.ox.ac.uk/~vgg/data3.html">motorbikes</a>,
+wildcats, <a
+href="http://www.emt.tugraz.at/~pinz/data/GRAZ_01/">bicycles</a> and
+<a href="http://www.emt.tugraz.at/~pinz/data/GRAZ_01/">people</a>. The
+wildcats database is not publicly available since it was created using
+the commercial Corel images database. We created the sixth and final
+data set. It consists of photos of parking lots and cars near the
+INRIA Rh&ocirc;ne-Alpes research centre in Montbonnot, France. The
+INRIA car database is available for download <a
+href="data/cars.tar.gz">here</a>. We now describe how to read in and
+use it.</p>
+
+<p>In the root directory, there are two files <b>trainimages</b> and
+<b>testimages</b>. Each one contains a list of image names, one per
+line. All the images are contained, appropriately enough, in the
+<b>images</b> folder with the file names appended with the <b>.jpg</b>
+extension.</p>
+
+<p>In addition, we have provided manual annotations of the scenes
+which consist of boxes (&quot;windows&quot;) that surround the
+objects. The files describing the scene annotations are contained in
+the <b>objects</b> subdirectory, appended with a <b>.pgm.objects</b>
+suffix.</p> Each line describes a single window and looks like
+this:<center><br><tt>Object: x y width height</tt><br>
+</center></br> where (x,y) is the top-left corner of the box. Note
+that the coordinate system starts at 0, not 1 as in Matlab. Here is a
+function <a href="matlab/loadobjectwindows.m">loadobjectwindows</a>
+for loading the windows from a objects file into Matlab.
+
+<a name="code">
+<h3>Code</h3>
+
+Our approach consists of three steps. First, we use detector to
+extract a sparse set of a priori informative interest regions. Second,
+we train the Bayesian classification model using a Markov Chain Monte
+Carlo algorithm. Third, for object localization, we run inference on a
+conditional random field. The code for the three steps is described
+and made available for download below.
+
+<h4>Interest region detectors</h4>
+
+The three detectors we employed were developed elsewhere. Binaries for
+the Harris-Laplace and Laplacian of Gaussian interest region detectors
+are available for download <a
+href="http://lear.inrialpes.fr/people/dorko/downloads.html">here</a>. You
+can find the Kadir-Brady entropy detector at Timor Kadir's <a
+href="http://www.robots.ox.ac.uk/~timork">website</a>. Once the
+regions are extracted, you still need a way of describing the regions
+in a way that our model will understand. We use the Scale Invariant
+Feature Transform (SIFT) descriptor. With our parameter settings, each
+interest region ends up as a 128-dimension feature vector. The <a
+href="http://lear.inrialpes.fr/people/dorko/downloads.html">same
+package</a> as above can be used to compute the SIFT feature vectors.
+
+<a name="ssmcmc">
+<h4>MCMC algorithm for Bayesian classification</h4>
+
+<p>We have a C implementation of the Markov Chain Monte Carlo (MCMC)
+algorithm for simulating the posterior of the Bayesian kernel machine
+classifier given some training data. It was tested in Linux. Here is
+how to compile and install the code.</p>
+
+<p>First, you need to install a copy of the <a
+href="http://www.gnu.org/software/gsl">GNU Scientific Library</a>
+(GSL). Our code was testted with GSL version 1.6. The libraries should
+be installed in the directory <b>$HOME/gsl/lib</b> and the header
+files in <b>$HOME/gsl/include</b>, and the variable <b>$HOME</b> must
+be entered correctly in the Makefile (see below). In addition, if you
+use the gcc compiler in Linux you have to set the path to include the
+installed libraries with the command<center><tt>setenv
+LD_LIBRARY_PATH $HOME/gsl/lib</tt></center></p>
+
+<p>Next, you're ready to install the <a
+href="c/ssmcmc.tar.gz">ssmcmc</a> package. &quot;ssmcmc&quot; stands
+for &quot;semi-supervised MCMC.&quot; As mentioned, you have to edit
+the file <b>Makefile</b> and make sure that the <b>HOME</b> variable
+points to the right directory. Once you're in the <b>ssmcmc</b>
+directory, type <tt>make</tt>, and after a few seconds you should have
+a program called <b>ssmcmc</b>. Running the program without any input
+arguments gives to the help. We give a brief tutorial explaining how
+to use the program.<p>
+
+<p>In order to train the model on some data, you need a few
+ingredients. First, you need some data in the proper format. We've
+made a sample <a href="data/carhartrain.gz">training set</a> available
+for download. In fact, this particular data set was used for many of
+our experiments. It was produced by extracting Harris-Laplace interest
+regions from the INRIA car data set (an average of 100 regions per
+image) then converting them to feature vectors using SIFT. The format
+of the data is as follows:
+<ul>
+
+<li>The first line gives the number of documents (images).
+
+<li>The second line gives the dimension of the feature vectors.
+
+<li>After that there's a line for each document (image) in the data
+set. Each line has two numbers. The first gives the image caption. It
+can either be 1 (all the points in the document are positive, which
+almost never happens in our data sets), 2 (all the points in the
+document are negative, which happens when there is no instance of the
+object in the image), or 0 (the points are unlabeled, which happens
+when there is an instance of the object in the image). The second
+number says how many points (extracted interest regions) there are in
+the document.
+
+<li>The last part of the data file, and the biggest, is the data
+points themselves. There is one feature vector for each line. The
+first number is the true label --- this is only used for evaluation
+purposes and is not available to the model. The rest of the numbers
+are the entries that make up the feature vector.
+
+</ul></p>
+
+<p>Suppose you have your data set available. Next, you need to specify
+the parameters for the model in a text file. A sample parameters file
+looks like this:<br>
+
+<pre>
+Put comment here.
+ns:      1000
+metric:  fdist2
+kernel:  kgaussian
+lambda:  0.01
+mu:      0.01
+nu:      0.01
+a:       1.0
+b:       50.0
+mua:     0.01
+nua:     0.01
+epsilon: 0.1
+nc1:     30
+nc2:     0
+</pre>
+
+Most of the parameters above are explained in the journal paper
+submission and technical report. <b>ns</b> is the number of samples to
+generate. There is only one possible distance metric and kernel, but
+they must be specified anyway. <b>lambda</b> is the kernel scale
+parameter and <b>epsilon</b> is the stabilization term on the
+covariance prior.</p>
+
+<p>The parameters <b>nc1</b> and <b>nc2</b> specify the minimum number
+of positive labels and the minimum number of negative labels in a
+training image, respectively, so this obviously specifies a
+constrained data association model. In this case, the constraints
+require that at least 30 interest regions in a training image be
+labeled as positive. Alternatively, one can specify data association
+problem using group statistics, in which case the last two lines are
+replaced by something like<br>
+
+<pre>
+m:       0.3
+chi:     400
+</pre></p>
+
+<p>Once the model parameters are specified, you can finally train the
+model with the following command:<br>
+
+<center><tt>
+ssmcmc -t=params -v carhartrain model
+</tt></center><br>
+
+We're assuming here at that the parameters file is called
+<b>params</b>. The result is saved in the file <b>model</b>. Once
+training is complete (it might take a little while), you can use the
+model to predict the labels of interest regions extracted from any
+image, including this <a href="data/carhartest.gz">sample test set</a>,
+with the following command:<br>
+<br>
+
+<center><tt>
+ssmcmc -p=labels -b=100 -v carhartest model
+</tt></center><br>
+
+This specifies a burn-in of 100, so the first hundred samples are
+discarded. The resulting predictions, along with the level of
+confidence in those predictions, is saved in the file
+<b>labels</b>. Each line in the file has two numbers: the probability
+of a positive classification (the interest region belongs to the
+object) and the probability of a negative classification (the interest
+region is associated with the background). These two numbers should
+add up to one. Here is a couple examples from that sample test set.<br>
+
+<br><img alt="Label estimated in a couple test images"
+src="carspredict.gif" width=460 height=174><br><br>
+
+The blue interest regions are more likely to belong to a car (greather
+than 0.5 chance).</p>
+
+<h4>Conditional random field for localization</h4>
+
+<p>We implemented the CRF model for localization in Matlab. The function
+is called <a href="matlab/crflocalize.m">crflocalize</a>. Type <b>help
+crflocalize</b> in the Matlab command line to get instructions on how to 
+use it.
+
+<p>The function crflocalize requires the optimized Matlab
+implementation of the random schedule tree sampler, <a
+href="http://www.cs.ubc.ca/~pcarbo/wiki/bgsfast.tar.gz">bgsfast</a>. Once
+you have downloaded and unpacked the tar ball, follow these steps:
+<ol>
+
+<li>Make sure that you have the GNU Scientific
+Library installed and that LD_LIBRARY_PATH is set correctly (see the
+instructions above). 
+
+<li>Edit the Makefile. You want the variable <b>GSLHOME</b> to point
+to the proper location.
+
+<li>Type <tt>make</tt> in the code directory to compile the MEX files.
+To make sure that it is working, you can run the <b>testbgs</b> Matlab
+script. If you have problems compiling the C code, it may be because
+your MEX options are not set correctly. In particular, make sure you
+are using the g++ copmiler (or another C++ compiler). Refer to the
+Mathworks support website for details. Note that this code has only
+been tested in Matlab version 7.0.1.
+
+<li>Once you've managed to compile the bgsfast MEX program
+successfully, use the <b>addpath</b> function to include the
+<b>bgsfast</b> directory in your Matlab path.
+
+</ol></p>
+
+<p>Here are a couple of localization results for the cars database.<br><br>
+<img alt="Localization of cars" src="carslocalize.gif" width=460 height=105>
+</p>
+
+<h3>Note</h3>
+
+If you have any questions or problems to report about this project, do
+not hesitate to contact the <a href="../index.html">main author</a>.
+
+<a name="pub">
+<h3>Publications</h3>
+
+<p>Hendrik K&uuml;ck and Nando de Freitas. <a
+href="http://www.cs.ubc.ca/&#126;kueck/papers/KueckUAI05.pdf">Learning
+to classify individuals based on group statistics.</a> Conference on
+Uncertainty in Artificial Intelligence, July 2005.</p>
+
+<p>Peter Carbonetto, Gyuri Dork&ograve; and Cordelia Schmid.  <a
+href="../techreport.pdf">Bayesian learning for weakly supervised
+object classification.</a> Technical Report, INRIA Rh&ocirc;ne-Alpes,
+July 2004.</p>
+
+<p>Hendrik K&uuml;ck, Peter Carbonetto and Nando de Freitas.  <a
+href="../semisup.pdf">A Constrained semi-supervised learning approach
+to data association</a>. European Conference on Computer Vision, May
+2004.</p>
+
+<center>
+<hr noshade width="100%" size=1>
+<font color="#333333" size=2>
+This webpage was last updated on August 13, 2005. 
+<a href="../index.html">Home</a>.  </font> </center>
+</td></tr></table>
+</body>
+</html>
