@@ -1,0 +1,121 @@
+<html>
+<title>IPOPT for MATLAB</title>
+<body bgcolor="#FFFFFF">
+
+<center>
+<br>
+<table align="center" border=0 width=460 cellspacing=0
+cellpadding=0>
+<tr><td valign=top>
+
+<center><h2>MATLAB interface for IPOPT</h2>
+<a href="index.html">About</a> &nbsp;&nbsp;&nbsp;&nbsp;
+<a href="download.html">Download</a> &nbsp;&nbsp;&nbsp;&nbsp;
+<a href="install.html">Installation</a> &nbsp;&nbsp;&nbsp;&nbsp;
+Tutorial
+</center>
+
+<p>The best way to understand how to use the MATLAB interface to IPOPT is to 
+study the examples below, and 
+also to look at the documentation by typing &quot;help ipopt&quot; at the
+MATLAB prompt.</p>
+
+<h3>First example</h3>
+
+<p>First, let's look at the Hock & Schittkowski test problem #51. 
+It is an optimization problem with
+5 variables, no inequality constraints and 3 equality
+constraints. There is a MATLAB script 
+<a href="examplehs051.m">examplehs051.m</a>
+which runs the limited-memory quasi-Newton (BFGS)
+algorithm with the starting point <b>[2.5 0.5 2 -1 0.5]</b> and
+obtains the solution <b>[1 1 1 1 1]</b>.
+
+<p>The first input to IPOPT is the starting point for the solver. The second
+  input is a collection of function handles that specify the routines for
+  computing various quantities such as the objective function, the gradient of
+  the objective, and the constraints. Since we are using a limited-memory
+  approximation to the Hessian, we don't need to specify the callback routine
+  for the Hessian.</p>
+
+<p>The third input specifies additional information, including settings that
+  are passed to IPOPT. The entries <b>cl</b> and <b>cu</b> specify the lower
+  and upper bounds on the three constraint functions (they are equality
+  constraints since the upper and lower bounds are equal).</p>
+
+<p>Most of the callback functions are relatively straightforward. The
+Jacobian callback function returns an M x N sparse
+matrix, where M is the number of constraint functions and N is the
+number of variables. It is important to always return a sparse matrix,
+even if there is no computational advantage in doing so. Otherwise,
+MATLAB will report an error.</p>
+
+<h3>Second example</h3>
+
+<p>Let's move to the second example, 
+<a href="examplehs038.m">examplehs038.m</a>. It
+demonstrates the use of IPOPT on an optimization problem with four
+variables and no constraints other than simple bound constraints. This
+time, we've implemented a callback routine for evaluating the
+Hessian. The Hessian callback function takes as input the current
+value of the variables <b>x</b>, the factor in front of the
+objective term <b>sigma</b>, an the values of the constraint
+multipliers <b>lambda</b> (which in this case is the empty matrix). 
+The return value H must always
+be a lower triangular matrix (type <b>help tril</b>). As
+explained in the IPOPT documentation, the Hessian matrix is symmetric
+so the information contained in the upper triangular part is
+redundant.</p>
+
+<p>This example also demonstrates the use an iterative callback
+function, which can be useful for displaying the status of the
+solver. The function <b>callback</b> takes as input the current iteration
+<b>t</b>, the current value of the objective <b>f</b>, and
+the current point <b>x</b>.</p>
+
+<h3>Third example</h3>
+
+<p>The third slightly more complicated example script is
+<a href="examplehs071.m">examplehs071.m</a>, which is the 
+same as the problem explored
+in the IPOPT documentation (Hock and Schittkowski test problem
+#71). It is worth taking a peek at the function for computing the 
+Hessian. In the Hessian callback function, we make use of the input 
+lambda.
+
+<p>This example also differs from previous ones because the initial values for
+the Lagrange multipliers are specified in MATLAB. We need to input three sets
+of multipliers to IPOPT: the Lagrange multipliers corresponding to the lower
+bounds on the optimization variables, the multipliers corresponding to the
+uppwer bounds on the variables, and the multipliers associated with the
+constraint functions. (Note that this optimization problem has 4 variables 
+and 2 constraints.)</p>
+
+<h4>Fourth example</h4>
+
+<p>The last example is dramatically more complicated
+than the other three. It is an implementation of an algorithm for finding a
+linear regresion model that best &quot;fits&quot; the data. The algorithm is
+implemented in <a href="lasso.m">lasso.m</a>, and there is also a script 
+<a href="examplelasso.m">examplelasso.m</a> that 
+demonstrates the use of this algorithm on a small, synthetic data set. 
+(If the algorithm is
+working correctly, the final value for the regression coefficients <b>w</b>
+should be similar to the value of <b>beta</b>.)</p>
+
+<p>I will not describe this example in detail, but it does demonstrate
+two importance features we did not cover in the previous examples: the use of
+  auxiliary data that is passed to all the callback functions, and the use of 
+cell arrays to more conveniently keep track of the optimization variables, 
+since we have two types of variables, which I've denoted by 
+<b>w</b> and <b>u</b>.</p>
+
+<p>The tutorial is over!</p>
+
+</td></tr>
+
+<tr>
+<td align=right><br><font color="#666666" size=2>September 18, 2008</font></tr>
+</table>
+</body>
+</html>

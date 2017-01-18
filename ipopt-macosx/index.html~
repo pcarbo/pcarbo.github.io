@@ -1,0 +1,251 @@
+<html>
+<title>Installing IPOPT on Mac OS X</title>
+<body bgcolor="#FFFFFF">
+
+<center>
+<br>
+<table align="center" border=0 width=460 cellspacing=0
+cellpadding=0>
+<tr><td valign=top>
+
+<center><h2>My experiences in installing IPOPT on Mac OS X</h2>
+by Peter Carbonetto<br>
+Dept. of Computer Science<br>
+University of British Columbia
+</center>
+
+<p><a href="https://projects.coin-or.org/Ipopt">IPOPT</a> is a
+software package for solving nonlinear objectives subject to nonlinear
+constraints. It uses primal-dual interior point
+methodology. Importantly, it is open source.</p> 
+
+<p>After a great deal of time and trouble, I managed to get in working
+on my laptop which is running the Mac OS X operating system.<sup><a
+href="#footnote1">1</a></sup> In the following, I detail my
+experiences in installing the IPOPT package.</p>
+
+<p>Succinctly put, the configure script did not work for IPOPT, so I
+had to install everything from scratch. While this was really quite a
+labourous process, I didn't know any other way of installing the
+package. On the bright side, I learned a lot about compiling fortran
+and C++, and linking object code, libraries and executables</p>
+
+<h4>1. Installing the Fortran compiler</h4>
+
+<p>The first problem I encounter is that I do not have a Fortran 77
+compiler installed on my machine. I <em>do</em> have the GNU C and C++
+compilers installed on my computer already (the programs
+<code>gcc</code> and <code>g++</code>), but the Fortran 77 compiler is
+also needed to compile the BLAS, LAPACK and HSL routines. A lot of
+people are upset that the GNU Fortran compiler <code>g77</code> was
+not included with the <a href="http://developer.apple.com/tools">Apple
+Developer Tools</a> because installing it ourselves causes many extra
+headaches. But we'll have to make do.</p>
+
+<p>There are several ways I can install a Fortran compiler. One is by
+downloading GNU Fortran compiler from the <a
+href="http://hpc.sourceforge.net">High Performance Computing</a>
+webpage. Another route is to install <code>g77</code> via <a
+href="http://fink.sourceforge.net">Fink</a>. Instead, I'm going to
+follow the route that gives me the most control: I will download and
+build the entire <a href="http://www.gnu.org/software/gcc">GNU
+Compiler Collection</a> (GCC), then put the necessary files in the
+appropriate places. Even though this route is considerably more
+complicated, it will allow me to ensure that I have the correct
+version of the compiler. You see, since I'm running Mac OS X 10.3.9 I
+already have <code>gcc</code> 3.3 installed on my computer in the
+<code>/usr/bin/</code> directory. (It is easy to check the version by
+typing <code>gcc --version</code>.) It is important that the compilers
+I'm using all belong from the same collection otherwise it is very
+likely that I will undercover linking errors. I've decided to
+download GCC 3.3.6 from my local university FTP mirror.</p>
+
+<p>It is crucial that I <b>do not</b> follow the default installation
+for GCC, because I may end up overwriting important files. The GCC
+installation instructions advise the same thing. Suppose that I've
+chosen to install to the directory
+<nobr><code>gcc-install</code></nobr>. I've done so simply by passing
+the option <nobr><code>--prefix=gcc-install</code></nobr> to the
+<code>configure</code> script. After following the correct
+installation steps and waiting a couple hours for the entire package
+to be built, I now have a whole bunch of files and subdirectories in
+<nobr><code>gcc-install</code></nobr>. I'm only really interested in
+the programs and libraries necessary for compiling and linking Fortran
+code. I start by installing the Fortran 77 compiler with the
+command</p>
+
+<p><code><pre>  sudo mv gcc-install/bin/g77 /usr/bin/g77</pre></code></p>
+
+<p>In the end, I had installed the following files:</p>
+
+<p><code><pre>  /usr/bin/g77
+  /usr/lib/libg2c.a
+  /usr/lib/libg2c.la
+  /usr/lib/libfrtlegin.a
+</pre></code></p>
+
+<h4>2. Building the BLAS, LAPACK and HSL libraries</h4>
+
+<p>Now that I have a Fortran 77 compiler installed on my system, I
+proceed to build the libraries needed by IPOPT from scratch. First, I
+download the latest BLAS and LAPACK tarballs from the <a
+href="ftp://ftp.netlib.org">Netlib FTP repository</a>. The BLAS
+package just consists of a bunch of Fortran files. I compile each of
+the individual files into object code, starting with the file
+<code>caxpy.f</code>:</p>
+
+<p><code><pre>  g77 -funroll-all-loops -O3 -x f77-cpp-input -c caxpy.f</pre>
+</code></p>
+
+<p>This creates an object file <code>caxpy.o</code>. The rest of the
+files are compiled similarly. If you want to produce a shared library,
+you will want to include the <code>-fPIC</code> option. Also, I've
+noticed that the <code>-fexceptions</code> option should not be used
+as it causes linking errors down the road. Once I've compiled all the
+Fortran code, I create a static library via the following commands:</p>
+
+<p><code><pre>  ar cr libblas.a *.o
+  ranlib libblas.a</pre></code></p>
+
+<p>I create the LAPACK library in precisely the same fashion, with the
+same options passed to <code>g77</code>. The only difference is that
+the files in the LAPACK tarball are strewn about in various
+subdirectories. In brief, the quickest way to build the LAPACK library
+is to use the existing Makefile and type</p>
+
+<p><code><pre>  make ../liblapack.a</pre></code></p> 
+
+<p>at the command prompt with <code>lapack/SRC</code> being the
+current directory. Before we do that, however, we need to modify a few
+of the options passed to the Makefile. First, I move
+<code>lapack/make.inc.example</code> to
+<code>lapack/make.inc.example</code>. Looking at this file, I see
+that it specifies among other things the program used to compile the
+Fortran code, which is <code>g77</code>, exactly as I want it. Near
+the bottom of this text file, I change the variable
+<code>LAPACKLIB</code> to</p>
+
+<p><code><pre>  LAPACKLIB = liblapack.a</pre></code></p>
+
+<p>Now, I can type the <code>make</code> command in the
+<code>SRC</code> subdirectory and it should proceed to automatically
+create the library (this takes about ten minutes on my computer).</p>
+
+<p>Lastly, I create a library with the HSL subroutines. After
+following the instructions in the IPOPT document for downloading the
+code from the HSL Archive, I create the library with the following
+commands:</p>
+
+<p><code><pre>  g77 -funroll-all-loops -O3 -x f77-cpp-input -c ma27ad.f
+  g77 -funroll-all-loops -O3 -x f77-cpp-input -c mc19ad.f
+  ar cr libhsl.a ma27ad.o mc19ad.o
+  ranlib libhsl.a</pre></code></p>
+
+<p>Now I'm ready to create the IPOPT library.</p>
+
+<h4>3. Building the IPOPT library</h4>
+
+<p>I will elect not to follow the standard installation instructions
+(since they didn't work) and instead build the IPOPT library by
+hand. Basically, I'm going to follow almost the same steps as I did
+before. The trickiest part is that I need to modify the file
+<code>Ipopt/inc/config_ipopt.h</code> manually; the configure script
+does this automatically. My file looked like</p>
+
+<p><code><pre>  #define COIN_HAS_BLAS         1
+  #define COIN_HAS_IPOPT        1
+  #define COIN_HAS_LAPACK       1
+  #define COIN_IPOPT_CHECKLEVEL 0
+  #define COIN_IPOPT_VERBOSITY  0
+  #define F77_FUNC(name,NAME)   name ## _
+  #define F77_FUNC_(name,NAME)  name ## __
+  #define FORTRAN_INTEGER_TYPE  int
+
+  #define HAVE_CASSERT      1
+  #define HAVE_CCTYPE       1
+  #define HAVE_CFLOAT       1
+  #define HAVE_CMATH        1
+  #define HAVE_CSTDARG      1
+  #define HAVE_CSTDIO       1
+  #define HAVE_CSTDLIB      1
+  #define HAVE_CTIME        1
+  #define HAVE_DLFCN_H      1
+  #define HAVE_INTTYPES_H   1
+  #define HAVE_MA27         1
+  #define HAVE_MC19         1
+  #define HAVE_MEMORY_H     1
+  #define HAVE_STDINT_H     1
+  #define HAVE_STDLIB_H     1
+  #define HAVE_STRINGS_H    1
+  #define HAVE_STRING_H     1
+  #define HAVE_SYS_STAT_H   1
+  #define HAVE_SYS_TYPES_H  1
+  #define HAVE_UNISTD_H     1
+  #define MY_C_FINITE       finite
+  #define PACKAGE           "ipopt"
+  #define PACKAGE_BUGREPORT "http://projects.coin-or.org/..."
+  #define PACKAGE_NAME      "Ipopt"
+  #define PACKAGE_STRING    "Ipopt 3.2.3"
+  #define PACKAGE_TARNAME   "ipopt"
+  #define PACKAGE_VERSION   "3.2.3"
+  #define SIZEOF_INT_P      sizeof(int*)
+  #define STDC_HEADERS      1
+  #define VERSION           "3.2.3"</pre></code></p>
+
+<p>Next, I compile the C and C++ source files into object files. For
+instance, a create the object file <code>IpAdaptiveMuUpdate.o</code>
+with the command</p>
+
+<p><code><pre>  g++ -O3 -Iipopt-include-dir -c IpAdaptiveMuUpdate.cpp</pre>
+</code></p>
+
+<p>where <code>ipopt-include-dir</code> is the directory containing
+all the <code>.h</code> and <code>.hpp</code> header files. And so
+on. Once I've compiled all the source files, I create the static
+library with the commands</p>
+
+<p><code><pre>  ar cr libipopt.a *.o
+  ranlib libipopt.a</pre></code></p>
+
+<p>Note that in most cases it will not make sense to archive
+<em>all</em> the object files into the library. For instance, you
+should not include <code>IpMa57TSolverInterface.o</code> unless you
+have downloaded that solver (I didn't). By the same token, I didn't
+include the code for interfacing with the AMPL and CUTEr.</p>
+
+<h4>4. Testing the installation with an example</h4>
+
+<p>I can't be positive that we built the libraries correctly without
+trying to run a program that actually uses IPOPT. I try the Hock and
+Schittkowski nonlinear programming test example no. 71, which is
+included with the IPOPT tarball. After copying all the static
+libraries to <code>libhome</code>, I compile and link the code
+with the following sequence of commands:</p>
+
+<p><code><pre>  g++ -Iipopt-include-dir -c hs071_nlp.cpp
+  g++ -Iipopt-include-dir -c hs071_main.cpp
+  g++ -o hs071 hs071_nlp.o hs071_main.o libhome/libipopt.a \
+    libhome/liblapack.a libhome/libblas.a libhome/libhsl.a \
+    -lg2c -lm</pre></code></p>
+
+<p>Now have a program which is executed by typing
+<code>./hs071</code>. Note that the order in which I included the
+object files and libraries in the above lines is important. The
+<code>g2c</code> library helps us link the Fortran object code to the
+C++ object code (recall that I placed this library in
+<code>/usr/lib</code>).</p>
+
+<h4>Footnotes</h4>
+
+<p><a name="footnote1"><sup>1</sup></a> More precisely, I'm using Mac
+OS X version 10.3.9 (Panther), and I have a PowerPC G4 processor. You
+may find that the steps I follow apply to your system, even if it
+isn't the same process or version of the operating system.</p>
+
+</td></tr>
+
+<tr>
+<td align=right><br><font color="#666666" size=2>December 16, 2006</font></tr>
+</table>
+</body>
+</html>

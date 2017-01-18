@@ -1,0 +1,67 @@
+<html>
+<title>How to partition and format an external hard drive for Mac OS X</title>
+<body bgcolor="#FFFFFF">
+
+<center>
+<br>
+<table align="center" border=0 width=460 cellspacing=0
+cellpadding=0>
+<tr><td valign=top>
+
+<h2>How to partition and format an external hard drive for Mac OS X</h2>
+
+<p>I have an Apple PowerBook G4, and I wanted an easy and inexpensive
+way to backup my data. I heard all these great things about external
+hard drive enclosures and how you can buy a cheap hard drive and then
+effortly hook it up to your computer using the USB port. So I
+purchased a Vantec NexStar external 3.5&quot; hard drive enclosure
+(which is meant to be compatible with Mac OS X) and a Samsung
+Spinpoint 120 GB hard drive. That's when the frustration began.</p>
+
+<p>To make a very long story short, Apple's own Disk Utility was
+unable to initialize partitions in the Mac OS (HFS+) format, but
+ironically, but worked fine with the Windows FAT32 format. All hope
+was lost (and a lot of time, for that matter), until my roommate found
+an article posted at <a href="http://macosxhints.com"></a>. With some
+tweaking, here is the solution.</p>
+
+<p>Let's suppose you would like to create two partitions on the new
+hard drive, one in HFS+ format, and the second in FAT32 so you can
+share your files with your Windows friends. Note that I am currently
+running Mac OS X 10.3.9. These are approximately the steps I followed
+to format my drive properly.</p>
+
+<ol type=1>
+
+<li>Connect the external drive and switch it on. the external
+drive. If a window pops up about initializing new drive, press the
+ignore button.
+
+<li>Open up Disk Utility, click on the Partition tab and modify the
+Volume Scheme to have 2 partitions. Name them whatever you want and
+don't worry about their format for now.
+
+<li>If you're like me, Disk Utility will partition the drive correctly
+but fail to format the partitions. Remember the names of the
+partitions. For me, the names are disk1s3 and disk1s5 for the first
+and second partitions. Quit Disk Utility.
+
+<li>Run the following command, but change NAME1 to something
+ informative for you: <tt>newfs_hfs -v NAME1 /dev/rdisk1s3</tt><br>
+Notice the &quot;r&quot; in front of &quot;disk1s3&quot;. When it's done, 
+you have an HFS+ partition.
+
+<li>Now, create the second partition with the command:<br>
+<tt>diskutil eraseVolume MS-DOS NAME2 disk1s5</tt><br>
+
+<li>You should now be able to mount the drives (if they aren't already) 
+with the commands:<br>
+<tt>diskutil mount disk1s3<br>
+    diskutil mount disk1s5</tt>
+</ol>
+
+<p>You're done!</p>
+
+</td></tr></table>
+</body>
+</html>

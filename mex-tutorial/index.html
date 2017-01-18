@@ -1,0 +1,362 @@
+<html>
+<title>Tutorial on MATLAB executables (MEX files)</title>
+<body bgcolor="#FFFFFF">
+
+<center>
+<br>
+<table align="center" border=0 width=460 cellspacing=0
+cellpadding=0>
+<tr><td valign=top>
+
+<center><h2>Creating, compiling and linking MATLAB executables 
+(MEX files): a tutorial</h2>
+by Peter Carbonetto<br>
+Dept. of Computer Science<br>
+University of British Columbia
+</center>
+
+<p>MATLAB is wonderful programming language for scientific research.
+Unfortunately, its kind interface comes at the cost of speed. For many
+of the machine learning problems I've worked on over the years,
+MATLAB's slowness was so severe I had to resort to implementing my 
+algorithms with lower level languages such as C++. Implementing a 
+numerical algorithm in C++ usually involves much more coding and 
+painful debugging. Not fun.</p>
+
+<p>The pain is eased knowing that it is possible to interface my C++
+implementations back to MATLAB. By creating a MATLAB interface in my
+code, then compiling my code into a <b>MEX file</b>, my obtuse code
+becomes both fast <em>and</em> easy to use, and as a result I can run
+my experiments and plot the results using MATLAB's nice plotting
+tools. Different people may have different reasons for resorting to
+MEX files, but it is an important tool for almost any seasoned MATLAB
+user.</p>
+
+<p>What's the catch? Creating a MEX file can be a harrowing
+experience. The purpose of this tutorial is to educate you in hopes
+that you will avoid the pitfalls I have encountered.  Here we go.</p>
+
+<h4>Compiling and linking made difficult</h4>
+
+<p>Let's suppose we wanted to create an efficient MATLAB routine that
+calculates the height of the Normal probability density function (pdf)
+at a given point on the line. That there are at least five gazillion
+MATLAB implementations that already calculate this quantity is beside
+the point. (Normally, when you decide to write a MATLAB routine in
+C++, you should make sure it is worth your while!)</p>
+
+<p>Before we embark on the actual C++ coding, we need to examine how
+MATLAB creates a MEX File. The exact procedure is system-dependent, so
+what I describe here may differ slightly from your setup. At school I
+have access to a machine installed with the Linux operating system,
+and I have my own Apple computer with Mac OS X. Both these operating
+systems are <a href="http://en.wikipedia.org/wiki/Unix">Unix-like</a>,
+hence their differences will be rather cosmetic.</p>
+
+<p>In order to build MEX files, we need to make sure that we have the
+proper compiler installed on our system. On my Linux machine, I'm
+using MATLAB 7.3 (R2006b), and according to <a
+href="http://www.mathworks.com/support/tech-notes/1600/1601.html">MathWorks
+product support</a> it was built with the <a
+href="http://gcc.gnu.org">GNU Compiler Collection</a> (GCC)
+3.4.5. Unfortunately, I did not have this particular version of the
+compiler installed on my system. Different versions of the same
+compiler are effectively different compilers, as they follow different
+conventions. You should never link libraries or object code unless
+they are compiled in the same way. I downloaded the GCC source from my
+local university FTP mirror and built the entire package on my
+system. GCC includes compilers for many different languages, and they
+can be found in the <code><nobr>bin</nobr></code> subdirectory of the GCC software
+installation. MATLAB uses three of them: the C compiler
+<code><nobr>gcc</nobr></code>, the C++ compiler <code><nobr>g++</nobr></code>, and the Fortran
+77 compiler <code><nobr>g77</nobr></code>. When installing GCC, it is a bad idea to
+blindly follow the default installation as it may overwrite the
+existing compilers. You should install it in a new
+directory. Afterward, to make things simpler, I created a <b>symbolic
+link</b> to each of the compilers like so:
+
+<p><code><nobr><pre>  cd /usr/bin
+  ln -s gcc-install-path/bin/gcc gcc-3.4.5</pre></nobr></code></p>
+
+Then I did the same thing for the other two compilers. Since
+<code><nobr>/usr/bin</nobr></code> is in the <b>path</b> (see the environment
+variable <code><nobr>PATH</nobr></code>), I can call the program anywhere I am
+simply by typing <code><nobr>gcc-3.4.5</nobr></code>. By including the version
+number in the symbolic link, I avoid calling version 3.4.5 of
+<code><nobr>gcc</nobr></code> unless I really want to.
+
+<p>I was much more fortunate on my Apple computer because I already
+had the correct version of GCC installed; both Mac OS X 10.3.9
+(Panther) and MATLAB 7.2 (R2006a) have been built with the GNU
+compiler collection 3.3.<sup><a href="#footnote1">1</a></sup></p>
+
+<p>Now that we've installed the compiler collection that agrees with
+MATLAB, let's examine the <a href="normpdf.cpp">C++ code</a> I've
+written to compute the Normal pdf. After we've built the MEX file,
+typing <code><nobr>disp(normpdf(1/2,0,1))</nobr></code> in the MATLAB prompt should
+display the response of the Normal pdf with zero mean and unit
+variance at point 0.5, which is approximately 0.3521.<sup><a
+href="#footnote2">2</a></sup> The first four lines of code in the
+function <code><nobr>mexFunction</nobr></code>
+
+<p><code><nobr><pre>  if (nrhs != numInputArgs)
+      mexErrMsgTxt("Incorrect number of input arguments");
+  if (nlhs != numOutputArgs)
+      mexErrMsgTxt("Incorrect number of output arguments");</pre>
+</nobr></code></p>
+
+<p>check to make sure the user has entered the correct number of input
+and output arguments when calling the function in MATLAB. After that,
+the lines</p>
+
+<p><code><nobr><pre>  double x  = getMatlabScalar(prhs[0]);
+  double mu = getMatlabScalar(prhs[1]);
+  double v  = getMatlabScalar(prhs[2]);</pre></nobr></code></p>
+
+<p>retrieve the point along the line, mean and variance using our
+function <code><nobr>getMatlabScalar</nobr></code>. In order to understand exactly
+how this code retrieves the values of the inputs, you may want to take
+a look at the <a
+href="http://www.mathworks.com/access/helpdesk/help/helpdesk.html">MATLAB
+documentation</a> on &quot;external interfaces.&quot; Next, the line</p>
+
+<p><code><nobr><pre>  double& p = createMatlabScalar(plhs[0]);</pre></nobr></code></p>
+
+<p>reserves a place for the output of our function and <code><nobr>p</nobr></code>
+is a variable that refers to it. And finally, the line</p>
+
+<p><code><nobr><pre>  p = exp(-(x-mu)*(x-mu)/(2*v)) / sqrt(2*pi*v);</pre></nobr></code></p>
+
+<p>uses a couple functions from the standard C math library to compute
+the pdf response, then stores this value in the location reserved for
+the single output argument. Now that we have a basic understanding of the C++
+code, let's go ahead and build the MEX file so we can see if
+<code><nobr>normpdf</nobr></code> behaves the way it is supposed to.</p>
+
+<p>First, download the code and make sure you are running MATLAB in
+the same directory as the location of the file
+<code><nobr>normpdf.cpp</nobr></code> (type <code><nobr>pwd</nobr></code> in the MATLAB prompt
+to check this). If you haven't done so already, you should set up MEX
+by typing <code><nobr>mex -setup</nobr></code> in the MATLAB prompt. I chose option
+2, but in my experience it makes little difference which option I
+select. To create the MEX file on my Linux machine, I type the
+following either in the MATLAB prompt or in the UNIX command line:</p>
+
+<p><code><nobr><pre>  mex CXX=g++-3.4.5 CXX=g++-3.4.5 LD=g++-3.4.5
+      -lm -output normpdf normpdf.cpp</pre></nobr></code></p>
+
+<p>It produces a MEX file called <code><nobr>normpdf.mexglx</nobr></code>. On my
+Apple computer, I type</p>
+
+<p><code><nobr><pre>  mex CC=g++ CXX=g++ LD=g++ -lm
+      -output normpdf normpdf.cpp</pre></nobr></code></p>
+
+<p>to create a MEX file with the name
+<code><nobr>normpdf.mexmac</nobr></code>.<sup><a href="#footnote3">3</a></sup>
+There's a few things worth explaining here. (It might be helpful to
+look at the external interfaces documentation and the command line
+help, <code><nobr>mex -help</nobr></code>, while you're reading this.) First, what
+I've done is set the C and C++ compiler variables so that they will
+call the right version of the compiler. The variable <code><nobr>LD</nobr></code>
+overrides the choice of linker. Notice that the C++ compiler and
+linker will always be used. This is because I want to make sure that
+we use the C++ linker.<sup><a href="#footnote4">4</a></sup> The first
+three options override MATLAB's default choices for the compiler. The
+default settings can be found in the MEX options file which is created
+when running <code><nobr>mex -setup</nobr></code>. On my Linux machine, this file
+is <code><nobr>~/.matlab/R2006b/mexopts.sh</nobr></code>. The flag <code><nobr>-lm</nobr></code>
+links the MEX file to the C math library. While MATLAB tends to do
+link to this library by default, we include this option just to be
+safe. Once the MEX file is created, you can call it like any other
+function in MATLAB.
+
+<p>Including the <code><nobr>-v</nobr></code> flag when calling <code><nobr>mex</nobr></code>
+allows us to peer under the hood. What you should observe is that
+<code><nobr>gcc</nobr></code> is called once and <code><nobr>g++</nobr></code> is called
+twice. The first call to <code><nobr>g++</nobr></code> compiles the source file
+<code><nobr>normpdf.cpp</nobr></code> into object code. Next, <code><nobr>gcc</nobr></code>
+compiles a C source file written by the MATLAB developers. And
+finally, <code><nobr>gcc</nobr></code> is called to link together the object code
+and libraries in order to build the MEX File.</p>
+
+<p>After a long look under the hood, we see that it wouldn't be all
+that difficult to duplicate these steps ourselves by calling the
+compilers with the appropriate flags. In other words, we could
+reverse-engineer the <code><nobr>mex</nobr></code> program. But that would be
+silly! The whole purpose of <code><nobr>mex</nobr></code> is to hide the
+complicated details from us. Nonetheless, it will be a useful exercise
+to compile the object files ourselves since we will need to know how
+to do this when we compile and link to a library.</p>
+
+<p>I cannot help but use a Makefile, a script which automates the
+compilation process very elegantly. If you have never used <a
+href="http://www.gnu.org/software/make">GNU make</a> before, I suggest
+you read a <a
+href="http://www.cs.washington.edu/orgs/acm/tutorials/dev-in-unix/makefiles.html">tutorial</a>. On
+my Linux machine, I wrote the following bare bones Makefile using a
+text editor and saved it in the same directory as the C++ source
+file:</p>
+
+<p><code><nobr><pre>  MEXSUFFIX  = mexglx
+  MATLABHOME = /cs/local/generic/lib/pkg/matlab-7.3
+  MEX        = mex
+  CXX        = g++-3.4.5
+  CFLAGS     = -fPIC -ansi -pthread -DMX_COMPAT_32 \
+               -DMATLAB_MEX_FILE
+
+  LIBS      = -lm
+  INCLUDE   = -I$(MATLABHOME)/extern/include
+  MEXFLAGS  = -cxx CC='$(CXX)' CXX='$(CXX)' LD='$(CXX)'
+
+  normpdf.$(MEXSUFFIX): normpdf.o
+	  $(MEX) $(MEXFLAGS) $(LIBS) -output normpdf $^
+
+  normpdf.o: normpdf.cpp
+	  $(CXX) $(CFLAGS) $(INCLUDE) -c $^</pre></nobr></code></p>
+
+<p>Simply typing <code><nobr>make</nobr></code> in the same directory as the
+Makefile as the C++ source file compiles and builds the MEX file in
+two steps.<sup><a href="#footnote5">5</a></sup> In the first step, the
+<code><nobr>g++</nobr></code> compiler specified by the <code><nobr>CXX</nobr></code> variable
+compiles (but does not link, as indicated by the <code><nobr>-c</nobr></code> flag)
+the source file into object code <code><nobr>normpdf.o</nobr></code>. Some special
+options are specified according to the <code><nobr>CFLAGS</nobr></code>
+variable. It is not really a mystery how I chose these. I simply
+peered under the hood, and copied the options displayed on the screen
+by running <code><nobr>mex</nobr></code> as I did above, but with the
+<code><nobr>-v</nobr></code> flag.  The first flag tells the compiler to generate
+position-independent code, which I suspect is necessary because MATLAB
+loads the program dynamically. The <code><nobr>-ansi</nobr></code> flag ensures
+that the C++ code strictly satisfies the ISO standard, and
+<code><nobr>-pthread</nobr></code> adds support for
+multi-threaded processes. The last two options in <code><nobr>CFLAGS</nobr></code>
+define preprocessor macros which aren't of import here. Notice that it
+is also important to tell the compiler where to find the
+<code><nobr>mex.h</nobr></code> header file. This information is provided by the
+<code><nobr>INCLUDE</nobr></code> Makefile variable.</p>
+
+<p>In the second step, <code><nobr>mex</nobr></code> link the object code together
+with the libraries and its own source files to produce the final MEX
+file. </p>
+
+<p>This Makefile will also work on my Apple computer if I make some
+changes to the first five lines:</p>
+
+<p><code><nobr><pre>  MEXSUFFIX  = mexmac
+  MATLABHOME = /Applications/MATLAB72
+  MEX        = mex
+  CXX        = g++
+  CFLAGS     = -fno-common -no-cpp-precomp -fexceptions</pre>
+</nobr></code></p>
+
+<p> Again, the flags used to compile the C++ come from observing the
+behaviour of <code><nobr>mex</nobr></code> on my Apple computer.</p>
+
+<p>As you can see, we went through great pains to build a small MEX
+file. We probably made things more difficult than necessary, but this
+procedure should translate to much larger projects as well. In fact,
+we'll see that linking our project to a library is now relatively
+straightforward.</p>
+
+<h4>Linking with a C library</h4>
+
+<p>We're now going to act a little smarter and reuse an existing
+function from the <a href="http://www.gnu.org/software/gsl">GNU
+Scientific Library</a> that computes the Normal pdf. (I downloaded GSL
+version 1.8.) In order to to use GSL's functions in MATLAB, we will
+have to skirt the normal build procedure and configure the install
+script to suit our own needs.</p>
+
+<p>The first step when installing GSL (and many other libraries) is to
+run the &quot;configure&quot; script. On my Linux machine, I ran the
+configure script with the following options:</p>
+
+<p><code><nobr><pre>  configure --disable-shared --prefix=gsl-install-path 
+    CC=gcc-3.4.5 CFLAGS='-O2 -fPIC -ansi -pthread'</pre></nobr></code></p>
+
+<p>The configuration comes straight from our previous experiences: we
+need to compile the library with the options used by
+<code><nobr>mex</nobr></code>. I removed some of the flags I figured would have no
+impact on compiling GSL, and then added the <code><nobr>-O2</nobr></code> flag to
+request optimized code. It can be difficult to keep track of shared
+libraries and their whereabouts, especially when compiling with
+different versions of GCC, so I disabled them with
+<code><nobr>--disable-shared</nobr></code>. Static libraries are certainly less
+efficient, but the keep-it-simple-stupid principle takes priority
+here. On my Apple, I ran the configure script with the following
+settings:</p>
+
+<p><code><nobr><pre>  configure --disable-shared --prefix=gsl-install-path 
+    CC=gcc CFLAGS='-O2 -fno-common -no-cpp-precomp -fexceptions'</pre>
+</nobr></code></p>
+
+<p>I then put the static libraries <code><nobr>libgsl.a</nobr></code> and
+<code><nobr>libgslcblas.a</nobr></code> in the <code><nobr>lib</nobr></code> subdirectory of my
+home directory.</p>
+
+<p>My new version of the C++ source code that uses the GSL routine
+<code><nobr>gsl_ran_gaussian_pdf</nobr></code> can be found <a
+href="normpdfgsl.cpp">here</a>. In order to build the new MEX file, I
+renamed the source file to <code><nobr>normpdf.cpp</nobr></code>) and made a couple
+changes to the Makefile:</p>
+
+<p><code><nobr><pre>  LIBS = -L$(HOME)/lib/gcc-3.4.5 -lgsl -lgslcblas -lm
+  INCLUDE = -I$(HOME)/include -I$(MATLABHOME)/extern/include</pre>
+</nobr></code></p> 
+
+<p>I put all the GSL include files in the <code><nobr>include</nobr></code>
+subdirectory of my home directory. With these
+modifications, I was able to successfully create the new MEX file and
+call it from MATLAB. Note that I made analogous small modifications to
+the Makefile on my Apple.</p>
+
+<h4>Parting notes</h4>
+
+<p>The motivation behind this tutorial may have been lacking because
+we didn't delve into very realistic scenarios; in reality, my projects
+can be much larger and much more complicated and I inevitably link to
+many different libraries, whic may even ve written in different
+languages such as Fortran. Nonetheless, my words should be taken as a
+gentle guideline for future projects.</p>
+
+<h4>Footnotes</h4>
+
+<p><a name="footnote1"><sup>1</sup></a> If you don't have GCC installed 
+on Mac OS X, you may either have to download the Apple developer tools 
+or use <a href="http://fink.sourceforge.net">Fink</a> to install GCC.</p>
+
+<p><a name="footnote2"><sup>2</sup></a> There may already exist a
+function called <code><nobr>normpdf</nobr></code>. If so, you can make sure you are
+using my code by typing <code><nobr>which normpdf</nobr></code> in the MATLAB
+prompt.</p>
+
+<p><a name="footnote3"><sup>3</sup></a> On my Apple computer,
+<code><nobr>mex</nobr></code> was not in my path so I could not call it from
+anywhere. I used <code><nobr>ln</nobr></code> to create a symbolic link to
+<code><nobr>/Applications/MATLAB72/bin/mex</nobr></code> in the
+<code><nobr>/usr/bin</nobr></code> directory.</p>
+
+<p><a name="footnote4"><sup>4</sup></a> I've noticed that in the
+latest release of MATLAB, version 7.3, there's an flag
+<code><nobr>-cxx</nobr></code> which ensure that the C++ linker is used. This
+appears to be an available but undocumented feature in version
+7.2. Another way to guarantee usage of the C++ linker to pass as the
+first source file to <code><nobr>mex</nobr></code> a recognized C++ source
+file. Generally, there is <a
+href="http://www.parashift.com/c++-faq-lite/mixing-c-and-cpp.html">no
+harm done</a> in compiling all the C and C++ code using the C++
+compiler.</p>
+
+<p><a name="footnote5"><sup>5</sup></a>There are some rather esoteric
+issues in Makefiles with regards to spacing, so simply cutting and
+pasting the above code might fail to do the trick. I suggest you
+educate yourself on the basics of Makefiles before continuing
+further.</p>
+
+</td></tr>
+
+<tr>
+<td align=right><br><font color="#666666" size=2>December 1, 2006</font></tr>
+</table>
+</body>
+</html>
